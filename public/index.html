@@ -39,7 +39,7 @@ img,svg{display:block;max-width:100%}
 
 /* Grain sérigraphie */
 .grain{position:relative;isolation:isolate}
-.grain::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.18;mix-blend-mode:overlay;
+.grain::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.07;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ============ BOUTONS ============ */
@@ -54,7 +54,7 @@ img,svg{display:block;max-width:100%}
 .btn-ligne:hover{background:rgba(255,255,255,.1)}
 
 /* ============ NAV ============ */
-.nav{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #222}
+.nav{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.94);border-bottom:1px solid #222}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:20px}
 .logo{font:900 2rem/1 var(--f-display);text-decoration:none;letter-spacing:-.01em}
 .logo span{color:var(--rouge)}
@@ -272,21 +272,22 @@ html,body{overflow-x:clip}
 .spots{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .spots i{position:absolute;top:-10%;width:34vw;height:130%;transform-origin:50% 0;
   background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 60%,transparent);
-  clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);filter:blur(6px);mix-blend-mode:screen}
+  clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);-webkit-mask-image:linear-gradient(90deg,transparent 8%,#000 40%,#000 60%,transparent 92%);mask-image:linear-gradient(90deg,transparent 8%,#000 40%,#000 60%,transparent 92%);will-change:transform}
 .spots i:nth-child(1){left:8%;animation:balaye 7s ease-in-out infinite}
 .spots i:nth-child(2){left:38%;background:linear-gradient(180deg,rgba(227,6,19,.45),rgba(227,6,19,.06) 60%,transparent);animation:balaye 5.5s ease-in-out -2s infinite reverse}
 .spots i:nth-child(3){left:66%;animation:balaye 8s ease-in-out -4s infinite}
 @keyframes balaye{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
-.spots::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 50% at 70% 20%,rgba(227,6,19,.35),transparent 70%);animation:pulse .5s ease-out infinite alternate}
+.spots::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 50% at 70% 20%,rgba(227,6,19,.35),transparent 70%);animation:pulse .5s ease-out infinite alternate;will-change:opacity}
 @keyframes pulse{from{opacity:.55}to{opacity:1}}
 /* Le D bat à 120 BPM */
-.hero-titre span.r{animation:monte .9s cubic-bezier(.2,.8,.2,1) .14s both, boum .5s cubic-bezier(.3,0,.3,1) 1.3s infinite;text-shadow:0 0 40px rgba(227,6,19,.6);transform-origin:50% 80%}
+.hero-titre span.r{animation:monte .9s cubic-bezier(.2,.8,.2,1) .14s both}
+.hero-titre span.r b{display:inline-block;font:inherit;animation:boum .5s cubic-bezier(.3,0,.3,1) 1.3s infinite;text-shadow:0 0 40px rgba(227,6,19,.6);transform-origin:50% 80%;will-change:transform}
 @keyframes boum{0%{transform:scale(1.045)}35%{transform:scale(1)}100%{transform:scale(1)}}
 /* Égaliseur */
 .eq{display:flex;align-items:flex-end;gap:3px;height:46px;margin-top:22px;opacity:.9}
-.eq i{flex:1;background:var(--rouge);border-radius:2px 2px 0 0;height:20%;animation:barre var(--d) ease-in-out var(--o) infinite alternate}
+.eq i{flex:1;background:var(--rouge);border-radius:2px 2px 0 0;height:100%;transform-origin:50% 100%;transform:scaleY(.2);will-change:transform;animation:barre var(--d) ease-in-out var(--o) infinite alternate}
 .eq i:nth-child(3n){background:var(--blanc)}
-@keyframes barre{from{height:8%}to{height:var(--h)}}
+@keyframes barre{from{transform:scaleY(.08)}to{transform:scaleY(var(--h))}}
 /* Compte à rebours */
 .compte{display:flex;gap:6px}
 .compte div{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px;min-width:62px;text-align:center}
@@ -296,7 +297,7 @@ html,body{overflow-x:clip}
 @keyframes tick{from{transform:translateY(-30%);opacity:.3}to{transform:none;opacity:1}}
 /* Bandeau défilant */
 .ticker{background:var(--rouge);overflow:hidden;white-space:nowrap;border-block:3px solid var(--noir);transform:rotate(-1.2deg);margin:-14px -10px 0;position:relative;z-index:2}
-.ticker-in{display:inline-flex;animation:defile 28s linear infinite}
+.ticker-in{display:inline-flex;animation:defile 28s linear infinite;will-change:transform}
 .ticker span{font:900 clamp(1.4rem,3vw,2.2rem)/1 var(--f-display);text-transform:uppercase;padding:14px 22px;display:inline-flex;align-items:center;gap:44px}
 .ticker span::after{content:"";width:16px;height:16px;background:var(--noir);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
 @keyframes defile{to{transform:translateX(-50%)}}
@@ -340,7 +341,7 @@ html,body{overflow-x:clip}
 .pl-txt b{font:900 1.15rem var(--f-display);text-transform:uppercase}
 .pl-txt small{font-size:.78rem;color:var(--gris)}
 .pl-eq{display:flex;align-items:flex-end;gap:2px;height:16px}
-.pl-eq i{width:3px;background:var(--rouge);height:30%;animation:barre .6s ease-in-out infinite alternate;--h:100%;animation-play-state:paused}
+.pl-eq i{width:3px;background:var(--rouge);height:100%;transform-origin:50% 100%;transform:scaleY(.3);animation:barre .6s ease-in-out infinite alternate;--h:1;animation-play-state:paused}
 .pl-eq i:nth-child(2){animation-delay:-.2s}.pl-eq i:nth-child(3){animation-delay:-.4s}
 .player.on .pl-eq i{animation-play-state:running}
 .player-panel{width:min(380px,calc(100vw - 36px));background:var(--graphite);border-radius:var(--r-l);padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.7);transform-origin:bottom right;animation:ouvre .3s cubic-bezier(.2,.8,.2,1)}
@@ -359,19 +360,21 @@ html,body{overflow-x:clip}
 
 
 /* ===== Motion v2 ===== */
-.suivi{position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle 320px at var(--mx,70%) var(--my,30%),rgba(255,255,255,.14),transparent 70%);transition:background .1s}
-.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:3;mix-blend-mode:overlay}
+.suivi{position:absolute;left:0;top:0;width:640px;height:640px;margin:-320px 0 0 -320px;border-radius:50%;z-index:-1;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);transform:translate(70vw,30vh);will-change:transform}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:3;will-change:opacity}
 .flash.on{animation:flash .45s ease-out}
-@keyframes flash{0%{opacity:.55}100%{opacity:0}}
+@keyframes flash{0%{opacity:.16}100%{opacity:0}}
 .foule{position:absolute;left:0;right:0;bottom:0;height:var(--fh,170px);z-index:0;pointer-events:none}
-.foule svg{position:absolute;bottom:-4px;left:0;width:100%;height:100%;overflow:visible}
-.foule .p{animation:saute .5s cubic-bezier(.3,0,.5,1) infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
-.foule .bras{animation:agite 1s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+.foule .p{position:absolute;bottom:-4px;will-change:transform}
+.foule .p svg,.foule .bras svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.foule .bras{position:absolute;inset:0;will-change:transform}
+.foule .p{animation:saute .5s cubic-bezier(.3,0,.5,1) infinite alternate}
+.foule .bras{animation:agite 1s ease-in-out infinite alternate}
 @keyframes saute{from{transform:translateY(0)}to{transform:translateY(-12px)}}
 @keyframes agite{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
 .hero .wrap{position:relative;z-index:1}
 .particules{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
-.particules i{position:absolute;bottom:-40px;left:var(--x);width:24px;height:28px;background:var(--c);opacity:0;
+.particules i{will-change:transform,opacity;position:absolute;bottom:-40px;left:var(--x);width:24px;height:28px;background:var(--c);opacity:0;
   clip-path:path("M12 0C5 0 0 3 0 8c0 6 6 13 12 20 6-7 12-14 12-20 0-5-5-8-12-8z");
   animation:envole var(--d) linear var(--o) infinite}
 .particules i.etoile{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
@@ -436,7 +439,7 @@ html,body{overflow-x:clip}
 .particules i.main{clip-path:none;background:none;width:38px;height:48px;color:var(--c)}
 .main svg,.vol svg{width:100%;height:100%;display:block;overflow:visible}
 .fond-rock{position:fixed;inset:0;z-index:5;pointer-events:none;overflow:hidden}
-.vol{position:absolute;bottom:-80px;left:var(--x);width:var(--w);height:calc(var(--w)*1.25);color:var(--c);opacity:0;
+.vol{will-change:transform,opacity;position:absolute;bottom:-80px;left:var(--x);width:var(--w);height:calc(var(--w)*1.25);color:var(--c);opacity:0;
   animation:vole var(--d) linear var(--o) infinite}
 .vol.pick{height:calc(var(--w)*1.15);background:var(--c);clip-path:path("M12 0C5 0 0 3 0 8c0 6 6 13 12 20 6-7 12-14 12-20 0-5-5-8-12-8z");transform-origin:12px 14px}
 @keyframes vole{
@@ -453,7 +456,7 @@ html,body{overflow-x:clip}
 .pellicule::before,.pellicule::after{content:"";position:absolute;left:0;right:0;height:12px;
   background:repeating-linear-gradient(90deg,transparent 0 10px,#2a2a2a 10px 22px,transparent 22px 34px);background-size:34px 12px}
 .pellicule::before{top:5px}.pellicule::after{bottom:5px}
-.pellicule-in{display:flex;gap:14px;width:max-content;animation:defile 50s linear infinite}
+.pellicule-in{display:flex;gap:14px;width:max-content;animation:defile 50s linear infinite;will-change:transform}
 .pellicule:hover .pellicule-in,.pellicule:focus-within .pellicule-in{animation-play-state:paused}
 .clip{position:relative;width:clamp(150px,18vw,210px);aspect-ratio:9/16;border-radius:12px;overflow:hidden;border:0;padding:0;background:#141414;color:var(--blanc);cursor:pointer;flex:none;
   transition:transform .3s cubic-bezier(.2,.8,.2,1)}
@@ -467,9 +470,10 @@ html,body{overflow-x:clip}
 .clip.a-video .ph::after{display:none}
 .clip .an{font:900 3rem/.9 var(--f-display)}
 .clip .leg{font-weight:600;font-size:.85rem;color:var(--os)}
-.clip .lire{width:48px;height:48px;border-radius:50%;background:var(--rouge);display:grid;place-items:center;align-self:center;margin:auto 0;box-shadow:0 0 0 0 rgba(227,6,19,.6);animation:onde 2s ease-out infinite}
+.clip .lire{width:48px;height:48px;border-radius:50%;background:var(--rouge);display:grid;place-items:center;align-self:center;margin:auto 0;position:relative}
+.clip .lire::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid rgba(227,6,19,.7);animation:onde 2s ease-out infinite;will-change:transform,opacity}
 .clip .lire svg{width:18px;height:18px;margin-left:3px}
-@keyframes onde{to{box-shadow:0 0 0 18px rgba(227,6,19,0)}}
+@keyframes onde{from{transform:scale(1);opacity:1}to{transform:scale(1.75);opacity:0}}
 .rec{position:absolute;top:12px;right:12px;display:flex;align-items:center;gap:6px;font:700 .7rem var(--f-texte);color:#fff}
 .rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rouge);animation:clignote 1s steps(1) infinite}
 @keyframes clignote{50%{opacity:0}}
@@ -480,6 +484,9 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 .lecteur-vide b{display:block;font:900 2.4rem/1 var(--f-display);text-transform:uppercase;color:var(--blanc);margin-bottom:8px}
 .lecteur-bas{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
 .lecteur-bas button{background:var(--blanc);color:var(--noir);border:0;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer}
+/* Pause des animations hors écran */
+.pause,.pause *,.pause::before,.pause::after,.pause *::before,.pause *::after{animation-play-state:paused!important}
+.hero.pause .particules,.hero.pause .spots{visibility:hidden}
 </style>
 </head>
 <body>
@@ -514,7 +521,7 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
   <div class="plongeurs" id="plongeurs" aria-hidden="true"></div>
   <div class="flash" id="flash" aria-hidden="true"></div>
   <div class="wrap">
-    <h1 id="titre" class="hero-titre" aria-label="2SDR, Les Saints Sauveurs du Rock"><span>2</span><span>S</span><span class="r">D</span><span>R</span></h1>
+    <h1 id="titre" class="hero-titre" aria-label="2SDR, Les Saints Sauveurs du Rock"><span>2</span><span>S</span><span class="r"><b>D</b></span><span>R</span></h1>
     <p class="hero-sous">Les Saints Sauveurs du Rock</p>
     <div class="eq" id="eq" aria-hidden="true"></div>
     <div class="hero-bas">
@@ -847,7 +854,7 @@ const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Égaliseur du hero
 const eq=document.getElementById("eq");
-eq.innerHTML=Array.from({length:64},()=>`<i style="--d:${(.35+Math.random()*.6).toFixed(2)}s;--o:-${(Math.random()).toFixed(2)}s;--h:${(35+Math.random()*65)|0}%"></i>`).join("");
+eq.innerHTML=Array.from({length:64},()=>`<i style="--d:${(.35+Math.random()*.6).toFixed(2)}s;--o:-${(Math.random()).toFixed(2)}s;--h:${(.35+Math.random()*.65).toFixed(2)}"></i>`).join("");
 
 // Compte à rebours (samedi 30 oct. 2027, 14h, heure de Paris)
 let CIBLE=new Date("2027-10-30T14:00:00+02:00").getTime();
@@ -895,24 +902,26 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
 {
   const hero=document.querySelector(".hero"),titre=document.getElementById("titre");
   // Projecteur qui suit le pointeur
-  hero.addEventListener("pointermove",e=>{const r=hero.getBoundingClientRect();
-    hero.style.setProperty("--mx",(e.clientX-r.left)+"px");hero.style.setProperty("--my",(e.clientY-r.top)+"px")});
+  const suivi=document.querySelector(".suivi");let px=0,py=0,ptic=false;
+  hero.addEventListener("pointermove",e=>{px=e.clientX;py=e.clientY;if(ptic)return;ptic=true;
+    requestAnimationFrame(()=>{const r=hero.getBoundingClientRect();suivi.style.transform=`translate(${px-r.left}px,${py-r.top}px)`;ptic=false})},{passive:true});
   // Accroche mot par mot
   const acc=document.querySelector(".hero-accroche");
   acc.innerHTML=acc.textContent.split(" ").map((m,i)=>`<span class="mot" style="--md:${(0.6+i*0.06).toFixed(2)}s">${m}</span>`).join(" ");
   // Foule qui saute (dessinée à la largeur réelle pour ne pas déformer les têtes)
   const foule=document.getElementById("foule");
   function dessineFoule(){
-    const W=foule.clientWidth,H=foule.clientHeight,N=Math.round(W/26);let svg=`<svg viewBox="0 0 ${W} ${H}">`;
-    const rangs=[{y:0,k:.85,c:"#2a0003"},{y:0,k:1,c:"#000"}]; // rang du fond plus petit et teinté
+    const W=foule.clientWidth,H=foule.clientHeight,N=Math.round(W/40);let html="";
+    const rangs=[{k:.85,c:"#2a0003"},{k:1,c:"#000"}]; // rang du fond plus petit et teinté
     rangs.forEach((rg,ri)=>{for(let i=0;i<N;i++){
-      const k=rg.k,x=i*(W/N)+(ri?0:W/N/2)+Math.random()*8,h=(H*.45+Math.random()*H*.3)*k,r=12*k,top=H-h,bras=Math.random();
+      const k=rg.k,x=i*(W/N)+(ri?0:W/N/2)+Math.random()*8,h=(H*.45+Math.random()*H*.3)*k,r=12*k,haut=h+50,t=50,lw=60,cx=30,bras=Math.random();
       const d=(Math.random()<.5?0:-.25)-Math.random()*.1;
-      svg+=`<g class="p" style="animation-delay:${d.toFixed(2)}s"><circle cx="${x}" cy="${top}" r="${r}" fill="${rg.c}"/><path d="M${x-21*k} ${H+10} Q${x-21*k} ${top+18*k} ${x} ${top+15*k} Q${x+21*k} ${top+18*k} ${x+21*k} ${H+10}Z" fill="${rg.c}"/>`;
-      if(bras>.3){const two=bras>.65,len=40*k;svg+=`<g class="bras" style="animation-delay:${(-Math.random()).toFixed(2)}s"><path d="M${x+13*k} ${top+22*k} L${x+24*k} ${top-len}" stroke="${rg.c}" stroke-width="${8*k}" stroke-linecap="round"/>${two?`<path d="M${x-13*k} ${top+22*k} L${x-24*k} ${top-len+4}" stroke="${rg.c}" stroke-width="${8*k}" stroke-linecap="round"/>`:""}</g>`}
-      svg+=`</g>`;
+      html+=`<div class="p" style="left:${(x-cx).toFixed(0)}px;width:${lw}px;height:${haut.toFixed(0)}px;animation-delay:${d.toFixed(2)}s"><svg viewBox="0 0 ${lw} ${haut.toFixed(0)}"><circle cx="${cx}" cy="${t}" r="${r}" fill="${rg.c}"/><path d="M${cx-21*k} ${haut+10} Q${cx-21*k} ${t+18*k} ${cx} ${t+15*k} Q${cx+21*k} ${t+18*k} ${cx+21*k} ${haut+10}Z" fill="${rg.c}"/></svg>`;
+      if(bras>.3){const two=bras>.65,len=40*k;
+        html+=`<div class="bras" style="transform-origin:${cx}px ${(t+22*k).toFixed(0)}px;animation-delay:${(-Math.random()).toFixed(2)}s"><svg viewBox="0 0 ${lw} ${haut.toFixed(0)}"><path d="M${cx+13*k} ${t+22*k} L${cx+24*k} ${t-len}" stroke="${rg.c}" stroke-width="${8*k}" stroke-linecap="round"/>${two?`<path d="M${cx-13*k} ${t+22*k} L${cx-24*k} ${t-len+4}" stroke="${rg.c}" stroke-width="${8*k}" stroke-linecap="round"/>`:""}</svg></div>`}
+      html+=`</div>`;
     }});
-    foule.innerHTML=svg+"</svg>";
+    foule.innerHTML=html;
   }
   dessineFoule();
 
@@ -968,10 +977,17 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
   }
   // on attend la fin de l'entrée du titre et le chargement de la police
   (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(lancerSauteurs,500));
-  let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{dessineFoule();lancerSauteurs()},250)});
+  let rz,larg=innerWidth;addEventListener("resize",()=>{if(innerWidth===larg)return;larg=innerWidth;clearTimeout(rz);rz=setTimeout(()=>{dessineFoule();lancerSauteurs()},250)});
+  // Animations en pause quand le bloc sort de l'écran
+  if("IntersectionObserver" in window){
+    const vis=new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle("pause",!e.isIntersecting);
+      if(e.target===hero)anims.forEach(a=>e.isIntersecting?a.play():a.pause())}),{rootMargin:"100px"});
+    document.querySelectorAll(".hero,.ticker,.rewind,.kids,.benev,.billet").forEach(el=>vis.observe(el));
+  }
+  document.addEventListener("visibilitychange",()=>{document.getElementById("fond-rock").classList.toggle("pause",document.hidden)});
 
   // Médiators et étoiles qui s'envolent
-  document.getElementById("particules").innerHTML=Array.from({length:18},(_,i)=>`<i class="${i%3?"":"etoile"}" style="--x:${(Math.random()*100).toFixed(1)}%;--t:${(10+Math.random()*16)|0}px;--c:${i%2?"var(--rouge)":"#fff"};--d:${(9+Math.random()*9).toFixed(1)}s;--o:-${(Math.random()*15).toFixed(1)}s"></i>`).join("");
+  document.getElementById("particules").innerHTML=Array.from({length:12},(_,i)=>`<i class="${i%3?"":"etoile"}" style="--x:${(Math.random()*100).toFixed(1)}%;--t:${(10+Math.random()*16)|0}px;--c:${i%2?"var(--rouge)":"#fff"};--d:${(9+Math.random()*9).toFixed(1)}s;--o:-${(Math.random()*15).toFixed(1)}s"></i>`).join("");
   // Glitch + flash de scène
   const flash=document.getElementById("flash");
   if(!calme)(function boucle(){setTimeout(()=>{titre.classList.remove("glitch");void titre.offsetWidth;titre.classList.add("glitch");
@@ -1022,10 +1038,10 @@ const MAIN=`<svg viewBox="0 0 64 80" aria-hidden="true"><g fill="currentColor">
   <g fill="none" stroke="rgba(0,0,0,.45)" stroke-width="2.2" stroke-linecap="round">
   <path d="M25 34 q4 -6 8 0 M33 34 q4 -6 8 0"/><path d="M16 46 q10 -6 22 -2"/><path d="M24 62 h18"/></g></svg>`;
 // Mains dans le hero (en plus des médiators et étoiles)
-document.getElementById("particules").insertAdjacentHTML("beforeend",Array.from({length:8},(_,i)=>`<i class="main" style="--x:${(5+Math.random()*90).toFixed(1)}%;--c:${i%2?"var(--rouge)":"#fff"};--d:${(10+Math.random()*8).toFixed(1)}s;--o:-${(Math.random()*16).toFixed(1)}s">${MAIN}</i>`).join(""));
+document.getElementById("particules").insertAdjacentHTML("beforeend",Array.from({length:5},(_,i)=>`<i class="main" style="--x:${(5+Math.random()*90).toFixed(1)}%;--c:${i%2?"var(--rouge)":"#fff"};--d:${(10+Math.random()*8).toFixed(1)}s;--o:-${(Math.random()*16).toFixed(1)}s">${MAIN}</i>`).join(""));
 // Fond de tout le site : mains et médiators qui s'envolent doucement
 (function(){
-  const n=innerWidth<700?7:14,c=["var(--rouge)","#fff","var(--rouge)","#000"];
+  const n=innerWidth<700?4:9,c=["var(--rouge)","#fff","var(--rouge)","#000"];
   document.getElementById("fond-rock").innerHTML=Array.from({length:n},(_,i)=>{
     const main=i%2===0,w=main?(26+Math.random()*26):(16+Math.random()*12);
     return `<div class="vol ${main?"":"pick"}" style="--x:${(Math.random()*96).toFixed(1)}%;--w:${w|0}px;--c:${c[i%4]};--d:${(22+Math.random()*18).toFixed(1)}s;--o:-${(Math.random()*40).toFixed(1)}s;--dx:${((Math.random()-.5)*160)|0}px;--r0:${((Math.random()-.5)*50)|0}deg;--op:${(.16+Math.random()*.14).toFixed(2)}">${main?MAIN:""}</div>`}).join("");
