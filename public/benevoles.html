@@ -212,6 +212,32 @@ select.sel{background:var(--graphite);color:var(--blanc);border:0;border-radius:
 .h3s{font:900 1.5rem/1 var(--f-display);text-transform:uppercase;margin:0 0 12px;color:var(--os)}
 
 /* ===== Modale compte ===== */
+/* ===== MES STOCKS ===== */
+.stk-ajout{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;align-items:end;background:var(--graphite);border-radius:var(--r-m);padding:14px 16px;margin-bottom:16px}
+.stk-ajout label{display:grid;gap:5px;font-weight:600;font-size:.82rem;color:var(--os)}
+.stk-ajout input,.stk-ed input{background:var(--acier);border:2px solid transparent;border-radius:10px;padding:11px 12px;color:var(--blanc);font:500 .95rem var(--f-texte);width:100%;min-width:0}
+.stk-ajout input:focus,.stk-ed input:focus{outline:none;border-color:var(--rouge)}
+@media (max-width:760px){.stk-ajout{grid-template-columns:1fr 1fr}.stk-ajout label:first-child{grid-column:1/-1}.stk-ajout .btn{grid-column:1/-1}}
+.stocks{display:grid;gap:8px}
+.stk{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:center;background:var(--graphite);border-radius:var(--r-m);padding:12px 14px;border-left:4px solid transparent}
+.stk.bas{border-left-color:var(--rouge);background:linear-gradient(90deg,rgba(227,6,19,.14),var(--graphite) 40%)}
+.stk b{display:block;font-weight:700}
+.stk .sous{font-size:.8rem;color:var(--gris)}
+.stk .alerte{color:#ff8a91;font-weight:700}
+.compteur{display:flex;align-items:center;gap:4px;background:var(--acier);border-radius:999px;padding:3px}
+.compteur button{width:40px;height:40px;border:0;border-radius:50%;background:none;font-size:1.3rem;font-weight:700}
+.compteur button:hover{background:var(--graphite)}
+.compteur output{min-width:64px;text-align:center;font:900 1.6rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.compteur output small{display:block;font:600 .68rem var(--f-texte);color:var(--gris)}
+.stk-act{display:flex;gap:4px}
+.stk-act button{border:0;background:var(--acier);border-radius:8px;padding:8px 10px;font-size:.8rem;font-weight:700;color:var(--os)}
+.stk-act button.conf{background:var(--rouge);color:var(--blanc)}
+.stk.merch{grid-template-columns:minmax(0,1fr) auto auto auto}
+.reste{font:900 1.6rem/1 var(--f-display);text-align:center;min-width:70px}
+.reste small{display:block;font:600 .68rem var(--f-texte);color:var(--gris)}
+@media (max-width:620px){.stk,.stk.merch{grid-template-columns:1fr 1fr}.stk>div:first-child{grid-column:1/-1}.stk-act{justify-content:flex-end}}
+.stk-ed{display:grid;gap:10px}
+.stk-ed label{display:grid;gap:5px;font-weight:600;font-size:.85rem}
 dialog{margin:auto;border:0;border-radius:var(--r-l);background:var(--graphite);color:var(--blanc);padding:26px;width:min(440px,92vw)}
 dialog::backdrop{background:rgba(0,0,0,.7)}
 dialog h2{font:900 2.2rem/1 var(--f-display);text-transform:uppercase;margin-bottom:16px}
@@ -269,6 +295,7 @@ body.chargement main{visibility:hidden}
     <button role="tab" aria-selected="false" aria-controls="p-qui" id="t-qui"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M16 14.5c3 0 6 1.5 6 4.5"/></svg>Qui est là ?</button>
     <button role="tab" aria-selected="false" aria-controls="p-merch" id="t-merch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3 3 6l2 5 3-1v11h8V10l3 1 2-5-5-3c0 2-2 3-4 3S8 5 8 3z"/></svg>Merch</button>
     <button role="tab" aria-selected="false" aria-controls="p-pole" id="t-pole"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>Mon pôle</button>
+    <button role="tab" aria-selected="false" aria-controls="p-stocks" id="t-stocks" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>Mes stocks</button>
   </nav>
 
   <!-- ===== PLANNING ===== -->
@@ -310,6 +337,21 @@ body.chargement main{visibility:hidden}
     </div>
   </section>
 
+  <!-- ===== MES STOCKS (responsables) ===== -->
+  <section class="panel" id="p-stocks" role="tabpanel" aria-labelledby="t-stocks" hidden>
+    <div class="panel-tete">
+      <div><h2 id="stk-titre">Mes stocks</h2><p id="stk-intro">Mets les quantités à jour au fil du montage et du festival. Un article passe en rouge quand il atteint son seuil d'alerte.</p></div>
+    </div>
+    <form class="stk-ajout" id="stk-ajout" novalidate>
+      <label>Article<input name="nom" placeholder="Ex. : saucisses, fûts de blonde, rouleaux de câble…" required></label>
+      <label>Quantité<input name="qte" type="number" min="0" step="any" value="0"></label>
+      <label>Unité<input name="unite" placeholder="pièces, kg, fûts…"></label>
+      <label>Alerte à<input name="seuil" type="number" min="0" step="any" value="0"></label>
+      <button class="btn btn-rouge" type="submit">Ajouter</button>
+    </form>
+    <div class="stocks" id="stk-liste" aria-live="polite"></div>
+  </section>
+
   <!-- ===== MON PÔLE ===== -->
   <section class="panel" id="p-pole" role="tabpanel" aria-labelledby="t-pole" hidden>
     <div class="panel-tete">
@@ -337,6 +379,8 @@ body.chargement main{visibility:hidden}
     <div class="dlg-bas"><button class="btn btn-gris" value="annuler">Annuler</button><button class="btn btn-rouge" value="ok">Enregistrer</button></div>
   </form>
 </dialog>
+
+<dialog id="dlg-stock" aria-label="Modifier un article"><form method="dialog"></form></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -588,6 +632,68 @@ function ouvrir(id){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 tabs.forEach(t=>t.addEventListener("click",()=>ouvrir(t.getAttribute("aria-controls"))));
+/* =========================================================
+   MES STOCKS (responsables)
+   ========================================================= */
+let STK={resp:"",merch:false,articles:[]};
+const fmtN=n=>Number(n).toLocaleString("fr-FR",{maximumFractionDigits:2});
+async function chargerStocks(){STK=await api("/api/stocks");rendStocks()}
+function rendStocks(){
+  $("#stk-titre").textContent="Stocks "+STK.resp;
+  $("#stk-ajout").hidden=STK.merch;
+  if(STK.merch){
+    $("#stk-intro").textContent="Le stock du stand merch, partagé avec l'admin. Note les arrivages dans « Stock » et les ventes dans « Vendus ».";
+    $("#stk-liste").innerHTML=STK.articles.length?STK.articles.map(a=>{const reste=a.stock-a.vendu-(a.staff?0:0),bas=a.stock>0&&reste<=a.seuil;
+      return `<div class="stk merch ${bas?"bas":""}" data-id="${a.id}"><div><b>${esc(a.article)} · ${esc(a.taille)}</b><span class="sous">${esc(a.var||"")}${bas?` · <span class="alerte">Stock bas</span>`:""}</span></div>
+        <div class="compteur" data-k="stock"><button data-d="-1" aria-label="Stock moins un">−</button><output>${a.stock}<small>stock</small></output><button data-d="1" aria-label="Stock plus un">+</button></div>
+        <div class="compteur" data-k="vendu"><button data-d="-1" aria-label="Vendus moins un">−</button><output>${a.vendu}<small>vendus</small></output><button data-d="1" aria-label="Vendus plus un">+</button></div>
+        <div class="reste">${reste}<small>restants</small></div></div>`}).join(""):`<p class="vide">Aucun article merch. L'admin les ajoute dans Merch &amp; stock.</p>`;
+    return;
+  }
+  $("#stk-liste").innerHTML=STK.articles.length?STK.articles.map(a=>{const bas=a.seuil>0&&a.qte<=a.seuil;
+    return `<div class="stk ${bas?"bas":""}" data-id="${a.id}"><div><b>${esc(a.nom)}</b><span class="sous">${bas?`<span class="alerte">Sous le seuil d'alerte (${fmtN(a.seuil)})</span> · `:a.seuil?`Alerte à ${fmtN(a.seuil)} · `:""}${a.note?esc(a.note)+" · ":""}mis à jour par ${esc(a.maj_par||"?")}</span></div>
+      <div class="compteur"><button data-d="-1" aria-label="Retirer un ${esc(a.nom)}">−</button><output>${fmtN(a.qte)}<small>${esc(a.unite||"en stock")}</small></output><button data-d="1" aria-label="Ajouter un ${esc(a.nom)}">+</button></div>
+      <div class="stk-act"><button data-act="edit">Modifier</button><button data-act="suppr">Supprimer</button></div></div>`}).join("")
+    :`<p class="vide">Aucun article pour l'instant. Ajoute ce que tu dois suivre : quantités de départ, unité, et le seuil à partir duquel il faut réapprovisionner.</p>`;
+}
+$("#stk-ajout").addEventListener("submit",async e=>{e.preventDefault();const f=e.target.elements;
+  if(!f.nom.value.trim()){toast("Indique le nom de l'article");return f.nom.focus()}
+  try{await api("/api/stocks",{body:{nom:f.nom.value,qte:f.qte.value,unite:f.unite.value,seuil:f.seuil.value}});e.target.reset();f.nom.focus();await chargerStocks();toast("Article ajouté")}
+  catch(x){toast(x.message)}});
+$("#stk-liste").addEventListener("click",async e=>{
+  const row=e.target.closest(".stk");if(!row)return;const id=+row.dataset.id,a=STK.articles.find(x=>x.id===id);
+  const pm=e.target.closest("[data-d]");
+  try{
+    if(pm){
+      const d=+pm.dataset.d;
+      if(STK.merch){const k=pm.closest(".compteur").dataset.k;a[k]=Math.max(0,a[k]+d);rendStocks();await api("/api/stocks/"+id,{method:"PUT",body:{[k]:a[k]}});}
+      else{a.qte=Math.max(0,Math.round((a.qte+d)*100)/100);rendStocks();const r=await api("/api/stocks/"+id,{method:"PUT",body:{delta:d}});Object.assign(a,r.article);rendStocks()}
+      return;
+    }
+    const b=e.target.closest("[data-act]");if(!b)return;
+    if(b.dataset.act==="suppr"){
+      if(!b.classList.contains("conf")){b.classList.add("conf");b.textContent="Confirmer ?";setTimeout(()=>{b.classList.remove("conf");b.textContent="Supprimer"},3000);return}
+      await api("/api/stocks/"+id,{method:"DELETE"});await chargerStocks();toast("Article supprimé");
+    }
+    if(b.dataset.act==="edit")editerStock(a);
+  }catch(x){toast(x.message);chargerStocks()}
+});
+function editerStock(a){
+  const d=$("#dlg-stock");
+  d.querySelector("form").innerHTML=`<h2>${esc(a.nom)}</h2><div class="stk-ed">
+    <label>Article<input name="nom" value="${esc(a.nom)}" required></label>
+    <label>Quantité en stock<input name="qte" type="number" min="0" step="any" value="${a.qte}"></label>
+    <label>Unité<input name="unite" value="${esc(a.unite||"")}"></label>
+    <label>Alerte quand il en reste<input name="seuil" type="number" min="0" step="any" value="${a.seuil}"></label>
+    <label>Note<input name="note" value="${esc(a.note||"")}" placeholder="Fournisseur, emplacement…"></label></div>
+    <p id="stk-err" style="color:#ff8a91;font-weight:600;font-size:.88rem;min-height:1.2em" role="alert"></p>
+    <div class="dlg-bas"><button class="btn btn-gris" value="annuler" formnovalidate>Annuler</button><button class="btn btn-rouge" value="ok">Enregistrer</button></div>`;
+  d.querySelector("form").onsubmit=async e=>{if(!e.submitter||e.submitter.value!=="ok")return;e.preventDefault();const f=e.target.elements;
+    try{await api("/api/stocks/"+a.id,{method:"PUT",body:{nom:f.nom.value,qte:f.qte.value,unite:f.unite.value,seuil:f.seuil.value,note:f.note.value}});d.close();await chargerStocks();toast("Article enregistré")}
+    catch(x){$("#stk-err").textContent=x.message}};
+  d.showModal();
+}
+
 const h=location.hash.slice(1); if(["planning","qui","merch","pole"].includes(h)) ouvrir("p-"+h);
 
 $("#btn-compte").addEventListener("click",()=>{const f=$("#form-compte").elements;
@@ -617,6 +723,7 @@ function toutRendre(){rendEntete();rendPlanning();rendQui();rendMerch();rendPole
     $("#salut").textContent="Salut "+MOI.prenom;$("#av").textContent=(MOI.prenom[0]||"?").toUpperCase();
     $("#b-pole").textContent=MOI.pole?"Pôle "+MOI.pole:"Pôle à définir";
     toutRendre();document.body.classList.remove("chargement");
+    if(MOI.responsabilite){$("#t-stocks").hidden=false;try{await chargerStocks()}catch(x){toast(x.message)}if(location.hash==="#stocks")ouvrir("p-stocks")}
   }catch(x){
     if(x.status===401)return location.replace("connexion.html");
     document.body.classList.remove("chargement");

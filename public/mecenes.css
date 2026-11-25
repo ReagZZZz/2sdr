@@ -1,0 +1,26 @@
+/* Bandeau des mécènes : un cadre façon écran de scène, logos sur plaques blanches */
+.mec-cadre{position:relative;border:2px solid var(--blanc,#fff);border-radius:22px;background:#0b0b0b;padding:30px 0 22px;margin-top:34px;
+  box-shadow:0 0 0 6px #000,0 0 0 8px #2a2a2a}
+.mec-cadre::before{content:"Merci à nos mécènes";position:absolute;top:-15px;left:28px;background:var(--rouge,#E30613);color:#fff;
+  font:900 1.05rem/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;letter-spacing:.04em;padding:7px 14px;border-radius:6px}
+.mec-fenetre{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.mec-piste{display:flex;width:max-content;animation:mec-defile var(--duree,40s) linear infinite;will-change:transform}
+.mec-cadre:hover .mec-piste,.mec-cadre:focus-within .mec-piste{animation-play-state:paused}
+@keyframes mec-defile{to{transform:translateX(-50%)}}
+.mec{flex:none;width:190px;height:124px;margin-right:16px;background:#fff;border-radius:14px;display:grid;place-items:center;padding:14px 16px 30px;
+  position:relative;text-decoration:none;color:#000;transition:transform .2s}
+a.mec:hover{transform:translateY(-3px)}
+.mec img{display:block;max-width:100%;max-height:72px;object-fit:contain}
+.mec-nom{position:absolute;bottom:9px;left:0;right:0;text-align:center;font:600 .76rem/1.2 Archivo,system-ui,sans-serif;color:#5c5852;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px}
+.mec-nom-seul{font:900 1.35rem/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;text-align:center;overflow-wrap:anywhere;hyphens:auto}
+.mec.sans-logo{padding-bottom:14px}
+.mec.sans-logo .mec-nom{display:none}
+.mec.sombre{background:#1d1d1d;color:#fff;box-shadow:inset 0 0 0 1px #3a3a3a}
+.mec.sombre .mec-nom{color:#9A958E}
+.mec-vide{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;padding:10px 24px;text-align:center;color:var(--os,#D9D4CC)}
+.mec-vide b{font:900 2rem/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;color:#fff}
+.mec-cadre.vide{padding:30px 0}
+.pause .mec-piste{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.mec-piste{animation:none}.mec-fenetre{overflow-x:auto}}
+@media (max-width:560px){.mec{width:150px;height:104px;margin-right:12px}.mec img{max-height:56px}}

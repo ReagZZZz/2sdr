@@ -279,5 +279,16 @@ export const SEED = {
   "inscriptions": true,
   "billetterie": "",
   "ouverture": "19:00"
- }
+ },
+ "responsabilites": [
+  "Merch",
+  "Grillade",
+  "Bar",
+  "Plateau",
+  "Catering",
+  "Parking",
+  "Kids",
+  "Élec",
+  "Nettoyage"
+ ]
 };
