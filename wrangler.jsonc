@@ -1,0 +1,26 @@
+{
+  // Site + API 2SDR sur Cloudflare Workers
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "2sdr",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "2sdr", "database_id": "baf2cec3-ce22-4420-b555-77c840606201" }
+  ],
+  // Envoi des newsletters programmées : tous les jours à 9 h (heure de Paris en hiver)
+  "triggers": { "crons": ["0 8 * * *"] },
+  "vars": {
+    "SITE_URL": "https://2sdr.nngk5grnnv.workers.dev",
+    "MAIL_FROM": "2SDR <contact@2sdr.fr>",
+    "MAIL_REPLY_TO": "contact@2sdr.fr"
+  },
+  "observability": { "enabled": true }
+  // Secrets à définir dans Cloudflare (Paramètres > Variables et secrets) :
+  //   SETUP_CODE      code d'installation du premier compte admin
+  //   RESEND_API_KEY  clé de l'API Resend pour l'envoi des e-mails
+}

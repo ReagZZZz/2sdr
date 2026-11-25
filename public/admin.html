@@ -199,6 +199,7 @@ dialog.large{width:min(1100px,96vw)}
 .apercu-mail .meta b{color:#111}
 .astuce{font-size:.8rem;color:var(--gris)}
 .astuce code{background:var(--acier);padding:1px 6px;border-radius:5px;color:var(--os)}
+.lien-acces{display:block;margin-top:3px;background:none;border:0;padding:0;color:var(--or);font:600 .8rem var(--f-texte);text-decoration:underline;cursor:pointer}
 </style>
 </head>
 <body>
@@ -209,15 +210,16 @@ dialog.large{width:min(1100px,96vw)}
     <div class="side-bas">
       <a href="index.html">Voir le site</a>
       <a href="benevoles.html">Vue bénévole</a>
-      <a href="connexion.html">Déconnexion</a>
+      <a href="connexion.html" id="deco">Déconnexion</a>
     </div>
   </aside>
-  <main id="main"></main>
+  <main id="main"><p class="vide">Chargement…</p></main>
 </div>
 
 <dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="api.js"></script>
 <script>
 /* =========================================================
    DONNÉES D'EXEMPLE — à brancher sur la base MySQL existante
@@ -240,103 +242,62 @@ const BESOINS_DEF={
   "Kids du rock":{montage:0,festival:6,demontage:0}
 };
 
-function genBenevoles(){
-  const P=["Claire","Julien","Inès","Thomas","Léa","Hugo","Manon","Antoine","Sophie","Maxime","Kevin","Camille","Lucas","Emma","Nathan","Chloé","Romain","Jade","Paul","Sarah","Mathis","Louise","Yanis","Zoé","Baptiste","Elsa","Quentin","Lina","Arthur","Jeanne","Théo","Margaux","Enzo","Clara","Victor","Alice","Simon","Anaïs","Florian","Océane"];
-  const N=["Morel","Hamel","Lebrun","Guérin","Marie","Desvages","Lecoq","Rault","Dupont","Fouques","Lemoine","Hébert","Vautier","Gosselin","Pichon","Roussel","Le Gall","Bisson","Lefèvre","Jouan","Hervieu","Lemonnier","Cotentin","Hue","Duval","Lepetit","Mauger","Gancel","Lecanu","Hardy","Osmont","Leroux","Pacary","Bazin","Letellier","Corbet","Hamon","Picot","Lhermitte","Brault"];
-  const V=["Avranches","Coutances","Saint-Lô","Saint-Sauveur-Lendelin","Périers","Granville","Lessay","Marigny","Carentan","Ducey"];
-  let s=11;const r=()=>((s=(s*9301+49297)%233280)/233280);
-  return P.map((p,i)=>{
-    const pole=POLES[i%POLES.length],dispo={};
-    JOURS.forEach(j=>{const besoin=BESOINS_DEF[pole][j.ph];const pr=besoin?(j.ph==="festival"?.9:.55):.08;
-      if(r()<pr){const c=CRENEAUX.filter(()=>r()<.65);dispo[j.iso]={cren:c.length?c:["AM"],repas:j.ph==="festival"?["festM","festS"].filter(()=>r()<.8):["mfrM","mfrS"].filter(()=>r()<.6)}}});
-    return{id:i+1,prenom:p,nom:N[i],pole,statut:r()<.82?"Validé":"En attente",chef:[0,1,8,3,4,5].includes(i)&&i<9,
-      tel:"06 "+[0,0,0,0].map(()=>String(10+Math.floor(r()*89))).join(" "),email:(p+"."+N[i]).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s/g,"")+"@exemple.fr",
-      ville:V[Math.floor(r()*V.length)],taille:TAILLES[1+Math.floor(r()*4)],coupe:r()<.5?"Homme":"Femme",dispo};
-  });
+/* =========================================================
+   DONNÉES : chargées depuis le serveur, synchronisées à chaque modification
+   ========================================================= */
+let D=null,META={mail:false,admins:[]},SNAP=null,enCours=null,aRefaire=false;
+const clone=o=>JSON.parse(JSON.stringify(o));
+const CH_B=["prenom","nom","email","tel","ville","pole","statut","chef","role","taille","coupe","covoit","dispo"];
+const CH_C=["email","prenom","source","date","statut"];
+async function charger(){
+  const r=await api("/api/admin/etat");delete r.ok;META=r.meta;delete r.meta;D=r;SNAP=clone(D);
 }
-const DEFAUT=()=>({
-  benevoles:genBenevoles(),
-  besoins:structuredClone(BESOINS_DEF),
-  merch:[
-    {id:1,article:"T-shirt staff",var:"Noir · Homme",taille:"M",stock:30,vendu:0,staff:true,seuil:5},
-    {id:2,article:"T-shirt 2SDR",var:"Noir",taille:"S",stock:20,vendu:6,seuil:4},
-    {id:3,article:"T-shirt 2SDR",var:"Noir",taille:"M",stock:30,vendu:14,seuil:5},
-    {id:4,article:"T-shirt 2SDR",var:"Noir",taille:"L",stock:30,vendu:22,seuil:5},
-    {id:5,article:"T-shirt 2SDR",var:"Noir",taille:"XL",stock:15,vendu:12,seuil:4},
-    {id:6,article:"T-shirt rouge",var:"Rouge",taille:"M",stock:20,vendu:8,seuil:4},
-    {id:7,article:"T-shirt rouge",var:"Rouge",taille:"L",stock:20,vendu:9,seuil:4},
-    {id:8,article:"Sweat à capuche",var:"Noir",taille:"M",stock:12,vendu:7,seuil:3},
-    {id:9,article:"Sweat à capuche",var:"Noir",taille:"L",stock:12,vendu:10,seuil:3},
-    {id:10,article:"Sweat à capuche",var:"Noir",taille:"XL",stock:8,vendu:3,seuil:2},
-    {id:11,article:"Tote bag",var:"Écru",taille:"Unique",stock:40,vendu:11,seuil:8},
-    {id:12,article:"Casquette",var:"Noir",taille:"Unique",stock:20,vendu:4,seuil:4}
-  ],
-  groupes:[
-    {id:1,nom:"[Groupe Kids du rock]",type:"Kids du rock",heure:"14:00",duree:"45 min",balances:"12:30",contact:"[Nom, 06 00 00 00 00]",personnes:4,repas:4,hebergement:"Non",contrat:"Signé",fiche:"Reçue",cachet:"[À compléter]"},
-    {id:2,nom:"[Groupe local]",type:"Local",heure:"20:00",duree:"45 min",balances:"16:00",contact:"[Nom, 06 00 00 00 00]",personnes:5,repas:5,hebergement:"Non",contrat:"Signé",fiche:"Manquante",cachet:"[À compléter]"},
-    {id:3,nom:"[Groupe national]",type:"National",heure:"21:30",duree:"1 h 15",balances:"17:00",contact:"[Tourneur, e-mail]",personnes:7,repas:7,hebergement:"Oui",contrat:"À signer",fiche:"Reçue",cachet:"[À compléter]"},
-    {id:4,nom:"[Tête d'affiche]",type:"National",heure:"23:15",duree:"1 h 30",balances:"18:00",contact:"[Tourneur, e-mail]",personnes:9,repas:9,hebergement:"Oui",contrat:"À signer",fiche:"Manquante",cachet:"[À compléter]"}
-  ],
-  inventaire:[
-    {id:1,nom:"Barrières Heras",cat:"Structure",qte:40,sortis:0,rentres:0,lieu:"Hangar mairie",etat:"Bon",source:"Mairie"},
-    {id:2,nom:"Barrières de scène",cat:"Structure",qte:12,sortis:0,rentres:0,lieu:"Local asso",etat:"Bon",source:"Asso"},
-    {id:3,nom:"Tables pliantes",cat:"Mobilier",qte:30,sortis:0,rentres:0,lieu:"Espace Culturel",etat:"Bon",source:"Commune"},
-    {id:4,nom:"Bancs",cat:"Mobilier",qte:60,sortis:0,rentres:0,lieu:"Espace Culturel",etat:"Bon",source:"Commune"},
-    {id:5,nom:"Tireuses à bière",cat:"Bar",qte:3,sortis:0,rentres:0,lieu:"Brasseur",etat:"Bon",source:"Location"},
-    {id:6,nom:"Gobelets réutilisables",cat:"Bar",qte:1500,sortis:0,rentres:0,lieu:"Local asso",etat:"Bon",source:"Asso"},
-    {id:7,nom:"Talkies-walkies",cat:"Technique",qte:12,sortis:0,rentres:0,lieu:"Local asso",etat:"Bon",source:"Asso"},
-    {id:8,nom:"Gilets staff",cat:"Sécurité",qte:40,sortis:0,rentres:0,lieu:"Local asso",etat:"Bon",source:"Asso"},
-    {id:9,nom:"Extincteurs",cat:"Sécurité",qte:6,sortis:0,rentres:0,lieu:"Espace Culturel",etat:"Bon",source:"Commune"},
-    {id:10,nom:"Rallonges 25 m",cat:"Technique",qte:15,sortis:0,rentres:0,lieu:"Local asso",etat:"À vérifier",source:"Asso"},
-    {id:11,nom:"Barnum 3×3",cat:"Structure",qte:4,sortis:0,rentres:0,lieu:"Local asso",etat:"À réparer",source:"Asso"},
-    {id:12,nom:"Friteuses",cat:"Cuisine",qte:2,sortis:0,rentres:0,lieu:"Local asso",etat:"Bon",source:"Asso"},
-    {id:13,nom:"Caisses / TPE",cat:"Bar",qte:4,sortis:0,rentres:0,lieu:"Trésorier",etat:"Bon",source:"Asso"}
-  ],
-  params:{date:"2027-10-30",deadline:"2027-10-01",verrou:false,inscriptions:true},
-  newsletter:NL_DEF()
-});
-
-
-/* ===== Newsletter : contacts et campagnes ===== */
-function genContacts(){
-  const P=["Marie","Nicolas","Julie","Pierre","Aurélie","Sébastien","Emilie","Guillaume","Céline","Mickaël","Sandrine","Jérôme","Laëtitia","Fabien","Audrey","Cédric","Elodie","Damien","Caroline","Vincent","Amandine","Ludovic","Pauline","Romain","Mélanie","Anthony","Lucie","Benoît","Morgane","Xavier"];
-  const S=["Billetterie 2026","Billetterie 2026","Billetterie 2026","Billetterie 2025","Formulaire du site","Kids du rock 2026"];
-  let s=5;const r=()=>((s=(s*9301+49297)%233280)/233280);const out=[];
-  for(let i=0;i<64;i++){const p=P[i%P.length],n=["Lecoq","Hamel","Marie","Lefranc","Durand","Leroy","Gosselin","Lemière"][i%8];
-    out.push({id:i+1,prenom:p,email:(p+"."+n+(i>29?i:"")).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")+"@exemple.fr",source:S[Math.floor(r()*S.length)],
-      date:`2026-${String(1+Math.floor(r()*10)).padStart(2,"0")}-${String(1+Math.floor(r()*27)).padStart(2,"0")}`,statut:r()<.94?"Abonné":"Désinscrit"})}
-  return out;
+function diffListe(cur,old,champs){
+  const o=new Map(old.map(x=>[x.id,x])),up=[];
+  cur.forEach(x=>{const a=o.get(x.id);
+    if(!a){const f={};champs.forEach(k=>{if(x[k]!==undefined)f[k]=x[k]});up.push({id:x.id,nouveau:true,fields:f});return}
+    const f={};champs.forEach(k=>{if(JSON.stringify(x[k])!==JSON.stringify(a[k]))f[k]=x[k]});
+    if(Object.keys(f).length)up.push({id:x.id,fields:f})});
+  const ids=new Set(cur.map(x=>x.id));
+  return{upsert:up,del:old.filter(x=>!ids.has(x.id)).map(x=>x.id)};
 }
-const NL_DEF=()=>({
-  contacts:genContacts(),
-  campagnes:[
-    {id:"billetterie",nom:"Ouverture de la billetterie 2027",quand:"Avant Noël",date:"2026-12-12",statut:"Brouillon",
-     objet:"La billetterie 2027 est ouverte",pre:"Une place pour le 30 octobre 2027 sous le sapin ?",
-     titre:"La billetterie 2027 est ouverte",
-     texte:"Bonjour {prenom},\n\nLa prochaine édition des Saints Sauveurs du Rock aura lieu le samedi 30 octobre 2027, la nuit du passage à l'heure d'hiver, à l'Espace Culturel de Saint-Sauveur-Lendelin.\n\nLa programmation reste secrète pour l'instant, mais la billetterie est déjà ouverte. Une place pour la soirée concerts, c'est une idée de cadeau qui se glisse facilement sous le sapin.\n\nLes Kids du rock restent gratuits le samedi après-midi.",
-     bouton:"Prendre ma place",lien:"https://www.2sdr.fr/#billetterie"},
-    {id:"teaser",nom:"Annonce avant la programmation",quand:"Juste avant la prog",date:"2027-03-10",statut:"Brouillon",
-     objet:"Plus qu'une semaine avant la programmation",pre:"Le 17 mars, on vous dit tout.",
-     titre:"La programmation arrive le 17 mars",
-     texte:"Bonjour {prenom},\n\nOn a bouclé l'affiche de l'édition 2027. Rendez-vous le mercredi 17 mars pour découvrir les trois groupes du samedi soir : un groupe local et deux groupes nationaux.\n\nEn attendant, la playlist du festival tourne déjà, et quelques indices vont tomber sur notre page Facebook.",
-     bouton:"Écouter la playlist",lien:"https://open.spotify.com/playlist/7q88BWK2xOk4ZDoBdHqQbl"},
-    {id:"prog",nom:"Sortie de la programmation",quand:"Le jour de la prog",date:"2027-03-17",statut:"Brouillon",
-     objet:"La programmation 2027 est là",pre:"Trois groupes, une heure de rock en plus.",
-     titre:"Voici l'affiche 2027",
-     texte:"Bonjour {prenom},\n\nLe samedi 30 octobre 2027 à Saint-Sauveur-Lendelin, sur scène :\n\n• [Tête d'affiche]\n• [Groupe national]\n• [Groupe local]\n\nL'après-midi, les Kids du rock reviennent pour les enfants, toujours gratuits.\n\nLes places partent vite à l'annonce : ne tardez pas.",
-     bouton:"Prendre ma place",lien:"https://www.2sdr.fr/#billetterie"},
-    {id:"merci",nom:"Merci après le festival",quand:"Après le festival",date:"2027-11-02",statut:"Brouillon",
-     objet:"Merci d'avoir fait vibrer Saint-Sauveur-Lendelin",pre:"Les photos de la soirée sont en ligne.",
-     titre:"Merci pour cette nuit-là",
-     texte:"Bonjour {prenom},\n\nMerci d'être venu(e) aux Saints Sauveurs du Rock samedi. Grâce à vous et à nos bénévoles, l'heure en plus a été bien remplie.\n\nLes photos de la soirée sont en ligne sur notre page Facebook. Identifiez-vous, partagez, et dites-nous ce que vous avez préféré.\n\nOn se retrouve l'année prochaine, le week-end du changement d'heure. On vous prévient dès l'ouverture de la billetterie.",
-     bouton:"Voir les photos",lien:"https://www.facebook.com/2SDRofficiel"}
-  ]
-});
-const KEY="2sdr27-admin";
-let D;try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!D||!D.benevoles) D=DEFAUT();
-if(!D.newsletter) D.newsletter=NL_DEF();
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+function aEnvoyer(){
+  const docs={};["params","besoins","merch","groupes","inventaire"].forEach(k=>{if(JSON.stringify(D[k])!==JSON.stringify(SNAP[k]))docs[k]=D[k]});
+  if(JSON.stringify(D.newsletter.campagnes)!==JSON.stringify(SNAP.newsletter.campagnes))docs.campagnes=D.newsletter.campagnes;
+  return{docs,benevoles:diffListe(D.benevoles,SNAP.benevoles,CH_B),contacts:diffListe(D.newsletter.contacts,SNAP.newsletter.contacts,CH_C)};
+}
+const rien=p=>!Object.keys(p.docs).length&&!p.benevoles.upsert.length&&!p.benevoles.del.length&&!p.contacts.upsert.length&&!p.contacts.del.length;
+function save(){
+  if(enCours){aRefaire=true;return enCours}
+  const p=aEnvoyer();if(rien(p))return Promise.resolve();
+  const envoi=clone(D);
+  enCours=(async()=>{
+    try{
+      const r=await api("/api/admin/sync",{body:p});
+      const remap=(liste,a,b)=>{const x=liste.find(y=>y.id==a);if(x)x.id=b};
+      for(const[a,b]of Object.entries(r.idmap.benevoles)){remap(D.benevoles,a,b);remap(envoi.benevoles,a,b)}
+      for(const[a,b]of Object.entries(r.idmap.contacts)){remap(D.newsletter.contacts,a,b);remap(envoi.newsletter.contacts,a,b)}
+      SNAP=envoi;
+      if(r.refus.length){toast(r.refus.join(" "));await charger();rendre()}
+      if(r.invitations.length)montrerInvitations(r.invitations,r.mail);
+    }catch(x){
+      if(x.status===401)return location.replace("connexion.html?suite=admin");
+      toast("Non enregistré : "+x.message);
+    }finally{enCours=null;if(aRefaire){aRefaire=false;save()}}
+  })();
+  return enCours;
+}
+addEventListener("beforeunload",e=>{if(enCours||(D&&!rien(aEnvoyer()))){e.preventDefault();e.returnValue=""}});
+// Retour sur l'onglet : on recharge les données (inscriptions, plannings modifiés par les bénévoles)
+addEventListener("focus",async()=>{if(!D||enCours||$("#dlg").open||!rien(aEnvoyer()))return;try{await charger();rendre()}catch(e){}});
+function montrerInvitations(liste,mail){
+  if(liste.every(i=>i.envoye)){toast(liste.length>1?`${liste.length} invitations envoyées par e-mail`:`Invitation envoyée à ${liste[0].prenom}`);return}
+  ouvrirDlg(`<h2>Accès à transmettre</h2><p style="color:var(--os);margin-bottom:12px">${mail?"L'e-mail n'a pas pu partir pour ces bénévoles.":"L'envoi d'e-mails n'est pas encore activé."} Transmets-leur ce lien (SMS, Messenger…) : il leur permet de créer leur mot de passe et reste valable 14 jours.</p>
+    <ul class="liste-noms">${liste.filter(i=>!i.envoye).map(i=>`<li style="flex-direction:column;align-items:stretch"><b>${esc(i.prenom)} ${esc(i.nom||"")}</b>
+      <span style="display:flex;gap:8px;margin-top:6px"><input class="champ" readonly value="${esc(i.lien)}" style="flex:1;min-width:0"><button type="button" class="btn btn-gris btn-s" data-copie="${esc(i.lien)}">Copier</button></span></li>`).join("")}</ul>
+    <div class="form-bas"><button class="btn btn-rouge" value="x">C'est noté</button></div>`);
+  document.querySelectorAll("#dlg [data-copie]").forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(b.dataset.copie);b.textContent="Copié"}catch(e){b.previousElementSibling.select();toast("Sélectionné : Ctrl+C pour copier")}});
+}
 
 /* ===== Utilitaires ===== */
 const $=s=>document.querySelector(s);
@@ -390,7 +351,7 @@ const VUES={
   accueil:{t:"Tableau de bord",ico:'<path d="M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z"/>'},
   benevoles:{t:"Bénévoles",ico:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5"/><circle cx="17" cy="9" r="2.5"/>',cpt:()=>D.benevoles.filter(b=>b.statut!=="Validé").length},
   planning:{t:"Planning & repas",ico:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>'},
-  merch:{t:"Merch & stock",ico:'<path d="M8 3 3 6l2 5 3-1v11h8V10l3 1 2-5-5-3c0 2-2 3-4 3S8 5 8 3z"/>',cpt:()=>D.merch.filter(m=>restant(m)<=m.seuil).length},
+  merch:{t:"Merch & stock",ico:'<path d="M8 3 3 6l2 5 3-1v11h8V10l3 1 2-5-5-3c0 2-2 3-4 3S8 5 8 3z"/>',cpt:()=>D.merch.filter(m=>(m.stock>0&&restant(m)<=m.seuil)).length},
   groupes:{t:"Groupes",ico:'<path d="M9 18V6l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',cpt:()=>D.groupes.filter(g=>g.contrat!=="Signé"||g.fiche!=="Reçue").length},
   newsletter:{t:"Newsletter",ico:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',cpt:()=>D.newsletter.campagnes.filter(c=>c.statut==="Brouillon").length},
   inventaire:{t:"Inventaire",ico:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>'},
@@ -416,7 +377,7 @@ R.accueil=()=>{
   const ventes=D.merch.reduce((s,m)=>s+m.vendu,0);
   const alertes=[];
   POLES.forEach(p=>{const c=couverture(sam,p);if(c.bes&&c.n<c.bes)alertes.push({c:c.n<c.bes*.6?"var(--rouge)":"var(--or)",t:`${p} samedi : ${c.n}/${c.bes} bénévoles`,go:"planning"})});
-  D.merch.filter(m=>restant(m)<=m.seuil).forEach(m=>alertes.push({c:"var(--or)",t:`Stock faible : ${m.article} ${m.taille} (${restant(m)} restants)`,go:"merch"}));
+  D.merch.filter(m=>(m.stock>0&&restant(m)<=m.seuil)).forEach(m=>alertes.push({c:"var(--or)",t:`Stock faible : ${m.article} ${m.taille} (${restant(m)} restants)`,go:"merch"}));
   D.groupes.forEach(g=>{if(g.contrat!=="Signé")alertes.push({c:"var(--rouge)",t:`Contrat à signer : ${g.nom}`,go:"groupes"});if(g.fiche!=="Reçue")alertes.push({c:"var(--or)",t:`Fiche technique manquante : ${g.nom}`,go:"groupes"})});
   if(att) alertes.unshift({c:"var(--or)",t:`${att} inscription${att>1?"s":""} bénévole en attente de validation`,go:"benevoles"});
   {const nx=[...D.newsletter.campagnes].sort((a,b)=>a.date.localeCompare(b.date)).find(c=>c.statut==="Brouillon");if(nx)alertes.push({c:"var(--montage)",t:`Newsletter à programmer : ${nx.nom} (${new Date(nx.date+"T12:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})})`,go:"newsletter"})}
@@ -429,7 +390,7 @@ R.accueil=()=>{
     <div class="kpi"><b>${Math.round(okT/besT*100)}%</b><span>besoins couverts samedi</span><small class="${okT>=besT?"ok":"warn"}">${okT}/${besT} postes</small></div>
     <div class="kpi"><b>${repasSam}</b><span>repas samedi</span><small>bénévoles + artistes</small></div>
     <div class="kpi"><b>${D.groupes.filter(g=>g.contrat==="Signé").length}/${D.groupes.length}</b><span>contrats signés</span><small class="${D.groupes.every(g=>g.contrat==="Signé")?"ok":"warn"}">groupes</small></div>
-    <div class="kpi"><b>${ventes}</b><span>articles merch vendus</span><small>${D.merch.filter(m=>restant(m)<=m.seuil).length} alerte(s) stock</small></div>
+    <div class="kpi"><b>${ventes}</b><span>articles merch vendus</span><small>${D.merch.filter(m=>(m.stock>0&&restant(m)<=m.seuil)).length} alerte(s) stock</small></div>
   </div>
   <div class="grille2">
     <div class="carte"><h2>Présences par jour</h2><div class="barres">${JOURS.map(j=>{const n=presents(j.iso).length,bes=POLES.reduce((s,p)=>s+D.besoins[p][j.ph],0);
@@ -457,7 +418,9 @@ R.benevoles=()=>{
   </div>
   <div class="table-wrap"><table><thead><tr><th>Bénévole</th><th>Pôle</th><th>Statut</th><th>Chef</th><th>Contact</th><th>T-shirt</th><th class="num">Jours</th><th class="num">Repas</th><th></th></tr></thead>
   <tbody>${l.map(b=>{const jours=Object.keys(b.dispo).length,rep=Object.values(b.dispo).reduce((s,d)=>s+d.repas.length,0);
-    return `<tr data-id="${b.id}"><td><span class="nom">${esc(b.prenom)} ${esc(b.nom)}</span><span class="sous">${esc(b.ville)}</span></td>
+    const souhait=b.statut!=="Validé"&&(b.poles_souhait?.length||b.dispo_souhait?.length)?`<span class="sous">Souhaite : ${esc([...(b.poles_souhait||[]),...(b.dispo_souhait||[])].join(", "))}</span>`:"";
+    const acces=b.statut==="Validé"?(b.compte?`<span class="sous ok">Compte actif</span>`:`<button class="lien-acces" data-act="invite">Renvoyer l'accès</button>`):"";
+    return `<tr data-id="${b.id}"><td><span class="nom">${esc(b.prenom)} ${esc(b.nom)}</span><span class="sous">${esc(b.ville)}</span>${souhait}${b.message?`<span class="sous" title="${esc(b.message)}">« ${esc(b.message.slice(0,70))}${b.message.length>70?"…":""} »</span>`:""}${acces}</td>
     <td><select class="champ" data-act="pole" aria-label="Pôle de ${esc(b.prenom)}">${POLES.map(p=>`<option ${p===b.pole?"selected":""}>${p}</option>`).join("")}</select></td>
     <td><button class="badge ${b.statut==="Validé"?"b-ok":"b-wait"}" data-act="statut">${b.statut}</button></td>
     <td><button class="badge ${b.chef?"b-chef":"b-gris"}" data-act="chef" aria-pressed="${b.chef}" title="Chef d'équipe">★</button></td>
@@ -473,10 +436,11 @@ A.benevoles=()=>{
   $("#p-b").onchange=e=>{fB.pole=e.target.value;rendre()};
   $("#s-b").onchange=e=>{fB.statut=e.target.value;rendre()};
   const va=$("#val-all");if(va)va.onclick=()=>{filtreBen().forEach(b=>b.statut="Validé");save();rendre();toast("Inscriptions validées")};
-  $("#add-b").onclick=()=>formulaire("Nouveau bénévole",champsB,{pole:POLES[0],statut:"Validé",taille:"M",coupe:"Homme"},v=>D.benevoles.push({id:nid(D.benevoles),chef:false,dispo:{},...v}));
+  $("#add-b").onclick=()=>formulaire("Nouveau bénévole",champsB,{pole:POLES[0],statut:"Validé",taille:"M",coupe:"Homme"},v=>D.benevoles.push({id:nid(D.benevoles),chef:false,dispo:{},covoit:false,role:"",...v}));
   $("#exp-b").onclick=()=>exporter("Bénévoles 2SDR",[["Prénom",b=>b.prenom],["Nom",b=>b.nom],["Pôle",b=>b.pole],["Statut",b=>b.statut],["Chef",b=>b.chef?"oui":""],["Téléphone",b=>b.tel],["E-mail",b=>b.email],["Ville",b=>b.ville],["T-shirt",b=>b.taille+" "+b.coupe],
     ...JOURS.map(j=>[j.l,b=>b.dispo[j.iso]?.cren.join("+")||""])],filtreBen());
-  $("tbody").addEventListener("click",e=>{const t=e.target.closest("[data-act]");if(!t||t.tagName==="SELECT")return;const b=D.benevoles.find(x=>x.id==t.closest("tr").dataset.id);
+  $("tbody").addEventListener("click",async e=>{const t=e.target.closest("[data-act]");if(!t||t.tagName==="SELECT")return;const b=D.benevoles.find(x=>x.id==t.closest("tr").dataset.id);
+    if(t.dataset.act==="invite"){t.disabled=true;await save();try{const r=await api(`/api/admin/benevoles/${b.id}/invitation`,{body:{}});montrerInvitations([r.invitation],r.mail)}catch(x){toast(x.message)}t.disabled=false;return}
     if(t.dataset.act==="statut"){b.statut=b.statut==="Validé"?"En attente":"Validé";toast(b.statut==="Validé"?`${b.prenom} validé(e)`:`${b.prenom} remis(e) en attente`)}
     if(t.dataset.act==="chef"){b.chef=!b.chef}
     if(t.dataset.act==="edit"){return formulaire(`${b.prenom} ${b.nom}`,champsB,b,v=>Object.assign(b,v),()=>D.benevoles.splice(D.benevoles.indexOf(b),1))}
@@ -587,7 +551,7 @@ A.groupes=()=>{
 
 /* ----- Newsletter ----- */
 let fN={q:"",statut:"Abonné"};
-const LOGO_MAIL="https://www.2sdr.fr/logo-2sdr-blanc.png"; // à héberger sur le site pour les vrais envois
+const LOGO_MAIL=location.origin+"/logo-2sdr.png";
 function mailHTML(c,prenom,pourApercu){
   const txt=esc(c.texte.replace(/\{prenom\}/g,prenom||"")).split(/\n{2,}/).map(par=>`<p style="margin:0 0 16px;font:16px/1.6 Arial,Helvetica,sans-serif;color:#1a1a1a">${par.replace(/\n/g,"<br>")}</p>`).join("");
   const logo=pourApercu?document.querySelector(".brand img").src:LOGO_MAIL;
@@ -657,9 +621,17 @@ A.newsletter=()=>{
   document.querySelector(".cycle").addEventListener("click",e=>{const t=e.target.closest("[data-act]");if(!t)return;const c=N.campagnes.find(x=>x.id===t.closest(".camp").dataset.id);
     const a=t.dataset.act;
     if(a==="edit") return editeur(c);
-    if(a==="prog"){c.statut="Programmée";toast(`Programmée le ${fmtD(c.date)}`)}
+    if(a==="prog"){c.statut="Programmée";toast(META.mail?`Programmée : envoi automatique le ${fmtD(c.date)} à 9 h`:`Programmée le ${fmtD(c.date)}, mais l'envoi d'e-mails n'est pas encore activé (Paramètres)`)}
     if(a==="deprog"){c.statut="Brouillon";toast("Remise en brouillon")}
-    if(a==="send"){c.statut="Envoyée";c.envoyes=abonnes().length;c.date=new Date().toISOString().slice(0,10);toast(`Envoyée à ${c.envoyes} abonnés (démo)`)}
+    if(a==="send"){
+      ouvrirDlg(`<h2>Envoyer maintenant ?</h2><p style="color:var(--os)">« ${esc(c.objet)} » part tout de suite à ${abonnes().length} abonné(s). Un envoi ne peut pas être annulé.</p>
+        <div class="form-bas"><button class="btn btn-gris" value="x">Annuler</button><button type="button" class="btn btn-rouge" id="go-send">Envoyer à ${abonnes().length} abonné(s)</button></div>`);
+      $("#go-send").onclick=async ev=>{ev.target.disabled=true;ev.target.textContent="Envoi en cours…";
+        try{await save();const r=await api(`/api/admin/campagnes/${c.id}/envoyer`,{body:{}});$("#dlg").close();await charger();rendre();
+          toast(r.partiel?`Envoi interrompu après ${r.envoyes} e-mails : ${r.raison}`:`Envoyée à ${r.envoyes} abonné(s)`)}
+        catch(x){ev.target.disabled=false;ev.target.textContent="Réessayer";toast(x.message)}};
+      return;
+    }
     if(a==="reset"){c.statut="Brouillon";delete c.envoyes}
     save();rendre()});
   $("tbody").addEventListener("click",e=>{const t=e.target.closest("[data-act]");if(!t)return;const c=N.contacts.find(x=>x.id==t.closest("tr").dataset.id);
@@ -701,7 +673,9 @@ function editeur(c){
     const html=mailHTML(v,"Camille",true);$("#e-prev").innerHTML=html.slice(html.indexOf("<table"),html.lastIndexOf("</body>"))};
   dlg.querySelectorAll("input,textarea").forEach(i=>i.addEventListener("input",maj));maj();
   $("#e-save").onclick=()=>{Object.assign(c,lire());save();dlg.close();rendre();toast("Campagne enregistrée")};
-  $("#e-envtest").onclick=()=>toast(`Test envoyé à ${$("#e-test").value} (démo : à brancher sur le service d'envoi)`);
+  $("#e-envtest").onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;Object.assign(c,lire());
+    try{await save();await api(`/api/admin/campagnes/${c.id}/test`,{body:{email:$("#e-test").value}});toast(`Test envoyé à ${$("#e-test").value}`)}
+    catch(x){toast(x.message)}finally{b.disabled=false}};
   $("#e-html").onclick=async()=>{const h=mailHTML(lire(),"{prenom}",false).replace("Camille","{prenom}");try{await navigator.clipboard.writeText(h);toast("HTML copié : colle-le dans ton outil d'envoi")}catch(e){toast("Copie impossible ici")}};
   dlg.addEventListener("close",()=>dlg.classList.remove("large"),{once:true});
 }
@@ -749,24 +723,58 @@ A.inventaire=()=>{
 };
 
 /* ----- Paramètres ----- */
-R.params=()=>`<div class="tete"><div><h1>Paramètres</h1><p>Réglages de l'édition, visibles côté bénévoles.</p></div></div>
+R.params=()=>`<div class="tete"><div><h1>Paramètres</h1><p>Réglages de l'édition, visibles sur le site et dans l'espace bénévole.</p></div></div>
   <div class="param">
     <div class="ligne"><div><b>Date du festival</b><span>Le samedi du passage à l'heure d'hiver.</span></div><input type="date" class="champ" id="p-date" value="${D.params.date}"></div>
     <div class="ligne"><div><b>Fin des inscriptions bénévoles</b><span>Affichée dans l'espace bénévole.</span></div><input type="date" class="champ" id="p-dl" value="${D.params.deadline}"></div>
     <div class="ligne"><div><b>Inscriptions bénévoles ouvertes</b><span>Le formulaire du site accepte de nouvelles candidatures.</span></div><button class="switch" role="switch" aria-checked="${D.params.inscriptions}" id="p-ins" aria-label="Inscriptions ouvertes"></button></div>
     <div class="ligne"><div><b>Verrouiller les plannings</b><span>Les bénévoles ne peuvent plus modifier leurs créneaux ni leurs repas.</span></div><button class="switch" role="switch" aria-checked="${D.params.verrou}" id="p-ver" aria-label="Verrouiller les plannings"></button></div>
-    <div class="ligne"><div><b>Données d'exemple</b><span>Remet toutes les données de démonstration à zéro.</span></div><button class="btn btn-gris" id="p-reset">Réinitialiser</button></div>
+    <div class="ligne"><div><b>Lien de la billetterie</b><span>Les boutons « Prendre ma place » du site y mènent. Vide : « billetterie bientôt ouverte ».</span></div><input type="url" class="champ" id="p-bil" placeholder="https://…" value="${esc(D.params.billetterie||"")}" style="min-width:260px"></div>
+    <div class="ligne"><div><b>Ouverture des portes</b><span>Affichée dans le programme du site.</span></div><input type="time" class="champ" id="p-ouv" value="${esc(D.params.ouverture||"19:00")}"></div>
+    <div class="ligne"><div><b>Envoi des e-mails</b><span>${META.mail?"Actif : invitations, confirmations et newsletters partent automatiquement.":"Pas encore activé : ajoute la clé Resend (RESEND_API_KEY) dans Cloudflare. En attendant, les liens d'accès s'affichent ici pour être transmis à la main."}</span></div><span class="badge ${META.mail?"b-ok":"b-wait"}">${META.mail?"Actif":"Inactif"}</span></div>
+    <div class="ligne" style="display:block"><div><b>Administrateurs</b><span>Les personnes qui ont accès à cette page.</span></div>
+      <ul class="liste-noms" style="margin:12px 0">${META.admins.map(a=>`<li><span><b>${esc(a.nom||a.email)}</b> <span class="sous">${esc(a.email)}${a.compte?"":" · invitation en attente"}</span></span><button type="button" class="ico danger" data-adm="${a.id}" aria-label="Retirer l'accès de ${esc(a.email)}">${IC.del}</button></li>`).join("")}</ul>
+      <div class="filtres" style="margin:0"><input class="champ" id="adm-nom" placeholder="Prénom" style="width:140px"><input class="champ" id="adm-mail" type="email" placeholder="E-mail" style="flex:1;min-width:180px"><button type="button" class="btn btn-rouge btn-s" id="adm-add">Donner l'accès</button></div></div>
   </div>`;
 A.params=()=>{
   $("#p-date").onchange=e=>{D.params.date=e.target.value;save();toast("Date enregistrée")};
   $("#p-dl").onchange=e=>{D.params.deadline=e.target.value;save();toast("Date limite enregistrée")};
   ["ins","ver"].forEach(k=>$("#p-"+k).onclick=e=>{const key=k==="ins"?"inscriptions":"verrou";D.params[key]=!D.params[key];e.currentTarget.setAttribute("aria-checked",D.params[key]);save();
     toast(key==="verrou"?(D.params.verrou?"Plannings verrouillés":"Plannings déverrouillés"):(D.params.inscriptions?"Inscriptions ouvertes":"Inscriptions fermées"))});
-  $("#p-reset").onclick=()=>{D=DEFAUT();save();rendre();toast("Données réinitialisées")};
+  $("#p-bil").onchange=e=>{const v=e.target.value.trim();if(v&&!/^https?:\/\//.test(v))return toast("Le lien doit commencer par https://");D.params.billetterie=v;save();toast(v?"Lien de billetterie enregistré":"Billetterie marquée « bientôt ouverte »")};
+  $("#p-ouv").onchange=e=>{D.params.ouverture=e.target.value;save();toast("Heure d'ouverture enregistrée")};
+  $("#adm-add").onclick=async ev=>{const em=$("#adm-mail").value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em))return toast("Saisis une adresse e-mail valide");
+    ev.target.disabled=true;
+    try{const r=await api("/api/admin/admins",{body:{email:em,nom:$("#adm-nom").value.trim()}});await charger();rendre();
+      montrerInvitations([{prenom:$("#adm-nom")?.value||em,nom:"",lien:r.lien,envoye:r.envoye}],META.mail)}
+    catch(x){toast(x.message);ev.target.disabled=false}};
+  document.querySelectorAll("[data-adm]").forEach(b=>b.onclick=async()=>{
+    try{await api("/api/admin/admins",{body:{supprimer:+b.dataset.adm}});await charger();rendre();toast("Accès retiré")}catch(x){toast(x.message)}});
 };
 
 const h=location.hash.slice(1);if(VUES[h])vue=h;
-rendre();
+function installation(){
+  $("#menu").innerHTML="";
+  $("#main").innerHTML=`<div class="tete"><div><h1>Installation</h1><p>Première connexion : crée le compte administrateur. Le code d'installation est celui que tu as défini dans Cloudflare (SETUP_CODE).</p></div></div>
+  <form class="carte" id="f-inst" style="max-width:520px;display:grid;gap:12px" novalidate>
+    <div class="form"><label class="plein">Code d'installation<input class="champ" id="i-code" type="password" autocomplete="off" required></label>
+    <label>Prénom<input class="champ" id="i-nom" autocomplete="given-name"></label><label>E-mail<input class="champ" id="i-mail" type="email" autocomplete="email" required></label>
+    <label class="plein">Mot de passe <span class="sous">8 caractères minimum</span><input class="champ" id="i-mdp" type="password" autocomplete="new-password" required></label></div>
+    <p class="ko" id="i-err" role="alert" style="min-height:1.2em;font-weight:600"></p>
+    <div><button class="btn btn-rouge" type="submit">Créer le compte administrateur</button></div></form>`;
+  $("#f-inst").onsubmit=async e=>{e.preventDefault();$("#i-err").textContent="";
+    try{await api("/api/admin/installation",{body:{code:$("#i-code").value,nom:$("#i-nom").value,email:$("#i-mail").value,password:$("#i-mdp").value}});demarrer()}
+    catch(x){$("#i-err").textContent=x.message}};
+}
+async function demarrer(){
+  try{await charger();rendre()}
+  catch(x){
+    if(x.status===401){const s=await api("/api/session").catch(()=>({}));if(s.installation)return installation();return location.replace("connexion.html?suite=admin")}
+    $("#main").innerHTML=`<p class="vide">${esc(x.message)}</p>`;
+  }
+}
+$(".side-bas").addEventListener("click",async e=>{if(e.target.id!=="deco")return;e.preventDefault();try{await api("/api/logout",{method:"POST"})}catch(x){}location.href="connexion.html"});
+demarrer();
 </script>
 </body>
 </html>

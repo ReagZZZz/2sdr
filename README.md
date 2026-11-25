@@ -1,20 +1,46 @@
 # 2SDR — Les Saints Sauveurs du Rock
 
-Maquettes de la refonte web du festival 2SDR (samedi 30 octobre 2027, Espace Culturel, Saint-Sauveur-Lendelin).
+Site du festival 2SDR (samedi 30 octobre 2027, Espace Culturel, Saint-Sauveur-Lendelin), avec espace bénévole et administration.
+Hébergé sur Cloudflare Workers, avec une base de données D1. Chaque push sur `main` redéploie le site.
 
-| Fichier | Page |
+## Pages
+
+| Adresse | Rôle |
 |---|---|
-| `index.html` | Site visiteur 2sdr.fr (programme, Rewind, bénévoles, billetterie, merch, infos, newsletter) |
-| `connexion.html` | Connexion à l'espace bénévole (démo, à brancher sur `login.php`) |
-| `benevoles.html` | Espace bénévole : planning, qui est là, merch, mon pôle |
-| `admin.html` | Administration : bénévoles, planning et repas, merch et stock, groupes, newsletter, inventaire |
+| `/` | Site public : programme, inscription bénévole, billetterie, merch, newsletter |
+| `/connexion` | Connexion (bénévoles et organisateurs), mot de passe oublié |
+| `/mot-de-passe` | Création ou changement de mot de passe (lien reçu par e-mail) |
+| `/benevoles` | Espace bénévole : planning et repas, qui est là, textile staff, contacts du pôle |
+| `/admin` | Administration : bénévoles, planning et repas, merch, groupes, newsletter, inventaire, paramètres |
 
-Pages statiques, sans dépendance : il suffit d'ouvrir `index.html`. Les données sont des exemples, à brancher sur le back-end PHP/MySQL existant (endpoints suggérés dans la charte du projet).
+## Fonctionnement
 
-## Mise en ligne avec GitHub Pages
+- Un bénévole s'inscrit sur le site. Un organisateur le valide dans l'admin : le bénévole reçoit un lien pour créer son mot de passe (si l'envoi d'e-mails n'est pas activé, l'admin affiche le lien à transmettre).
+- Les groupes, la date, l'heure d'ouverture et le lien de billetterie saisis dans l'admin s'affichent sur le site.
+- Une newsletter « programmée » part automatiquement le jour prévu, à 9 h. Chaque e-mail contient un lien de désinscription.
+- Mots de passe chiffrés (PBKDF2), sessions en cookie sécurisé, limite d'essais de connexion.
 
-Settings → Pages → Source : « Deploy from a branch », branche `main`, dossier `/ (root)`.
+## Configuration Cloudflare
+
+Dans le Worker `2sdr` > Paramètres > Variables et secrets :
+
+| Nom | Type | Rôle |
+|---|---|---|
+| `SETUP_CODE` | Secret | Code demandé pour créer le premier compte admin sur `/admin` |
+| `RESEND_API_KEY` | Secret | Clé de [Resend](https://resend.com) pour envoyer les e-mails |
+
+`SITE_URL`, `MAIL_FROM` et `MAIL_REPLY_TO` sont dans `wrangler.jsonc`. L'adresse d'envoi doit appartenir à un domaine vérifié dans Resend (par exemple `2sdr.fr`).
+
+## Développement
+
+```
+npm install
+echo "SETUP_CODE=code-local" > .dev.vars
+npx wrangler dev
+```
+
+Code serveur : `src/worker.js` (API), `src/mails.js` (gabarits d'e-mails), `src/seed.js` (données de départ).
 
 ## Vidéos Rewind
 
-Déposer les vidéos (MP4 vertical 9:16, 10 à 30 s) dans un dossier `videos/` à la racine, avec les noms attendus dans `index.html` (`2sdr-2025.mp4`, etc.).
+Déposer les vidéos (MP4 vertical 9:16, 10 à 30 s) dans `public/videos/` avec les noms attendus dans `public/index.html` (`2sdr-2025.mp4`, etc.).

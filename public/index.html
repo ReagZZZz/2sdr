@@ -634,7 +634,7 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
         </div>
         <div class="ligne2">
           <label>E-mail<input name="email" type="email" autocomplete="email" required><span class="err"></span></label>
-          <label>Téléphone<input name="tel" type="tel" autocomplete="tel" required pattern="^(\+33|0)[1-9]([ .-]?\d{2}){4}$"><span class="err"></span></label>
+          <label>Téléphone<input name="tel" type="tel" autocomplete="tel" required pattern="^(\+33|0)[1-9]([\s.\-]?\d{2}){4}$"><span class="err"></span></label>
         </div>
         <fieldset>
           <legend>Pôles qui te tentent</legend>
@@ -655,6 +655,8 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
           <label>Tu viens de<input name="ville" placeholder="Ville, pour le covoiturage" autocomplete="address-level2"></label>
         </div>
         <label>Un mot pour l'équipe (facultatif)<textarea name="msg" rows="3" placeholder="Expérience, contraintes, ami(e) avec qui tu veux être…"></textarea></label>
+        <input name="site" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
+        <p class="err" id="err-benev" role="alert"></p>
         <div class="form-bas">
           <small>Tes données servent uniquement à l'organisation des bénévoles.</small>
           <button class="btn btn-rouge" type="submit">Envoyer ma candidature</button>
@@ -662,7 +664,7 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
       </form>
       <div class="merci carte" id="merci" role="status" style="background:var(--noir);border-radius:var(--r-l)">
         <b>Bienvenue chez les rabbits</b>
-        <p>Candidature envoyée. Le responsable du pôle te recontacte par e-mail.</p>
+        <p>Candidature envoyée : un e-mail de confirmation est en route. Le responsable du pôle te recontacte, puis tu reçois ton accès à l'espace bénévole.</p>
       </div>
     </div>
   </div>
@@ -673,7 +675,7 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 <section id="billetterie" class="billet" aria-labelledby="t-billet">
   <div class="wrap">
     <h2 id="t-billet" class="h2">Billetterie</h2>
-    <p class="intro" style="color:#444">En prenant ta place, tu reçois aussi nos 4 nouvelles de l'année (désinscription en un clic). Les Kids du rock sont gratuits. Pour la soirée, tarifs d'exemple à remplacer par la grille officielle et le lien de votre billetterie.</p>
+    <p class="intro" style="color:#444">Les Kids du rock sont gratuits, sans réservation. Pour la soirée, prends ta place en ligne : tu recevras aussi nos 4 nouvelles de l'année (désinscription en un clic).</p>
     <div class="billets">
       <article class="ticket"><h3>Les Kids du rock</h3><div class="prix">Gratuit</div>
         <ul><li>Samedi après-midi</li><li>Concert jeune public et activités</li></ul>
@@ -702,7 +704,7 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
       <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 16c0-6 32-6 32 0l26 14 8 40-12 4-6-24v66H28V50l-6 24-12-4 8-40z" fill="#111" stroke="#555"/><path d="M46 16c2 14 26 14 28 0" fill="none" stroke="#555" stroke-width="2"/><text x="60" y="68" text-anchor="middle" font-family="Big Shoulders Display,Impact" font-weight="900" font-size="18" fill="#E30613">2SDR</text></svg></div><h3>Sweat à capuche</h3><div class="p-bas"><span>S au XXL</span><b>35&nbsp;€</b></div></article>
       <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 34c0-16 32-16 32 0" fill="none" stroke="#D9D4CC" stroke-width="5"/><rect x="28" y="34" width="64" height="72" rx="4" fill="#D9D4CC"/><text x="60" y="78" text-anchor="middle" font-family="Big Shoulders Display,Impact" font-weight="900" font-size="20" fill="#000">2SDR</text></svg></div><h3>Tote bag</h3><div class="p-bas"><span>Taille unique</span><b>8&nbsp;€</b></div></article>
     </div>
-    <p class="merch-note">Articles et prix d'exemple : à remplacer par la collection de l'édition.</p>
+    <p class="merch-note">Paiement au stand merch le soir du festival. Pour réserver une taille, écris-nous.</p>
   </div>
 </section>
 
@@ -776,8 +778,9 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="api.js"></script>
 <script>
-/* ===== Données d'exemple (à brancher sur votre CMS / API) ===== */
+/* ===== Données par défaut (remplacées par celles de l'admin au chargement) ===== */
 const PROGRAMME = [
   {h:"[14:00]",nom:"Les Kids du rock",d:"Un groupe joue pour les enfants, activités tout l'après-midi",tag:"Gratuit"},
   {h:"[19:00]",nom:"Ouverture des portes",d:"Bar et restauration ouverts",tag:"Soirée"},
@@ -800,19 +803,21 @@ burger.addEventListener("click",()=>{const o=menu.classList.toggle("open");burge
 menu.addEventListener("click",e=>{if(e.target.tagName==="A"){menu.classList.remove("open");burger.setAttribute("aria-expanded",false)}});
 
 /* ===== Programme ===== */
-document.getElementById("lineup").innerHTML=PROGRAMME.map(e=>`<li class="${e.cls||""}"><time>${e.h}</time>
-  <div class="nom">${e.nom}<small>${e.d}</small></div><span class="tag">${e.tag}</span></li>`).join("");
+const escH=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function rendProgramme(P){document.getElementById("lineup").innerHTML=P.map(e=>`<li class="${e.cls||""}"><time>${escH(e.h)}</time>
+  <div class="nom">${escH(e.nom)}<small>${escH(e.d)}</small></div><span class="tag">${escH(e.tag)}</span></li>`).join("")}
+rendProgramme(PROGRAMME);
 
 /* ===== Pôles ===== */
 document.getElementById("poles").innerHTML=POLES.map(p=>`<article class="pole">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p.ico}</svg>
-  <b>${p.nom}</b><p>${p.d}</p><span class="besoin">${p.besoin}</span></article>`).join("");
+  <b>${p.nom}</b><p>${p.d}</p></article>`).join("");
 document.getElementById("choix-poles").innerHTML=POLES.map(p=>`<input type="checkbox" id="p-${p.id}" name="pole" value="${p.id}"><label for="p-${p.id}">${p.nom}</label>`).join("");
 
 /* ===== Formulaire ===== */
 const form=document.getElementById("form-benev");
 const MSG={prenom:"Indique ton prénom.",nom:"Indique ton nom.",email:"Saisis une adresse e-mail valide.",tel:"Saisis un numéro français, ex. 06 12 34 56 78."};
-form.addEventListener("submit",e=>{
+form.addEventListener("submit",async e=>{
   e.preventDefault();
   let ok=true;
   ["prenom","nom","email","tel"].forEach(n=>{
@@ -821,12 +826,21 @@ form.addEventListener("submit",e=>{
     i.setAttribute("aria-invalid",!v); err.textContent=v?"":MSG[n]; if(!v&&ok){i.focus();ok=false}
   });
   if(!ok) return;
-  // TODO : envoyer vers votre back-end (fetch POST /api/benevoles)
-  form.style.display="none"; document.getElementById("merci").classList.add("on");
+  const f=form.elements,btn=form.querySelector('button[type="submit"]'),errG=document.getElementById("err-benev");
+  const coches=n=>[...form.querySelectorAll(`input[name="${n}"]:checked`)].map(i=>i.value);
+  const NOMS_POLES=Object.fromEntries(POLES.map(p=>[p.id,p.nom==="Montage / Démontage"?"Montage/Démontage":p.nom]));
+  btn.disabled=true;errG.textContent="";
+  try{
+    await api("/api/inscription",{body:{prenom:f.prenom.value,nom:f.nom.value,email:f.email.value,tel:f.tel.value,ville:f.ville.value,taille:f.taille.value,
+      msg:f.msg.value,poles:coches("pole").map(id=>NOMS_POLES[id]),dispos:coches("dispo"),site:f.site.value}});
+    form.style.display="none"; document.getElementById("merci").classList.add("on");
+  }catch(x){errG.textContent=x.message}
+  finally{btn.disabled=false}
 });
 
 function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("on");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("on"),2600)}
-document.querySelectorAll('.ticket a[href="#"]').forEach(a=>a.addEventListener("click",e=>{e.preventDefault();toast("Lien vers votre billetterie à brancher ici")}));
+let BILLETTERIE="";
+document.querySelectorAll('.ticket a[href="#"]').forEach(a=>{a.dataset.billet="1";a.addEventListener("click",e=>{if(!BILLETTERIE){e.preventDefault();toast("La billetterie ouvre bientôt : inscris-toi à la newsletter pour être prévenu.")}})});
 
 /* ================= MOTION ================= */
 const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -836,7 +850,7 @@ const eq=document.getElementById("eq");
 eq.innerHTML=Array.from({length:64},()=>`<i style="--d:${(.35+Math.random()*.6).toFixed(2)}s;--o:-${(Math.random()).toFixed(2)}s;--h:${(35+Math.random()*65)|0}%"></i>`).join("");
 
 // Compte à rebours (samedi 30 oct. 2027, 14h, heure de Paris)
-const CIBLE=new Date("2027-10-30T14:00:00+02:00").getTime();
+let CIBLE=new Date("2027-10-30T14:00:00+02:00").getTime();
 const prev={};
 function compte(){
   let d=Math.max(0,CIBLE-Date.now())/1000;
@@ -969,14 +983,34 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
     tic=false})},{passive:true});
 }
 
+/* ===== Données du festival (modifiables dans l'admin) ===== */
+api("/api/public").then(({params,groupes})=>{
+  if(params.billetterie){BILLETTERIE=params.billetterie;document.querySelectorAll("[data-billet]").forEach(a=>{a.href=BILLETTERIE;a.target="_blank";a.rel="noopener"})}
+  if(params.date){const t=new Date(params.date+"T14:00:00+02:00").getTime();if(!isNaN(t))CIBLE=t;compte()}
+  if(groupes.length){
+    const kids=groupes.filter(g=>g.type==="Kids du rock"),soir=groupes.filter(g=>g.type!=="Kids du rock");
+    const nat=soir.filter(g=>g.type==="National"),tete=nat[nat.length-1];
+    const P=[...kids.map(g=>({h:g.heure,nom:"Les Kids du rock",d:g.nom+" joue pour les enfants, activités tout l'après-midi",tag:"Gratuit"})),
+      {h:params.ouverture||"19:00",nom:"Ouverture des portes",d:"Bar et restauration ouverts",tag:"Soirée"},
+      ...soir.map(g=>({h:g.heure,nom:g.nom,d:g.type==="Local"?"Le groupe de la région qui ouvre la soirée":g===tete?"Le concert de clôture, avant l'heure en plus":"Groupe national",
+        tag:g.type==="Local"?"Groupe local":"National",cls:g.type!=="National"?"":g===tete?"tete":"national"}))]
+      .sort((a,b)=>String(a.h).localeCompare(String(b.h)));
+    rendProgramme(P);
+  }
+  if(params.inscriptions===false){
+    const f=document.getElementById("form-benev");f.style.display="none";
+    const m=document.getElementById("merci");m.classList.add("on");
+    m.innerHTML="<b>Complet pour cette année</b><p>Les inscriptions bénévoles sont closes. Écris-nous à contact@2sdr.fr pour être sur la liste de l'an prochain.</p>";
+  }
+}).catch(()=>{});
+
 /* ===== Newsletter ===== */
 document.getElementById("form-nl").addEventListener("submit",e=>{
   e.preventDefault();const f=e.target,em=document.getElementById("nl-email"),ok=document.getElementById("nl-ok"),err=document.getElementById("nl-err");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em.value.trim())){err.textContent="Saisis une adresse e-mail valide.";em.setAttribute("aria-invalid","true");return em.focus()}
   if(!ok.checked){err.textContent="Coche la case pour confirmer ton inscription.";return ok.focus()}
   err.textContent="";em.removeAttribute("aria-invalid");
-  // TODO : POST /api/newsletter (ou formulaire Brevo / Mailchimp)
-  f.classList.add("envoye");
+  api("/api/newsletter",{body:{email:em.value.trim(),consentement:true}}).then(()=>f.classList.add("envoye")).catch(x=>{err.textContent=x.message});
 });
 
 /* ===== Le signe du rock (cornes) : dessin original ===== */

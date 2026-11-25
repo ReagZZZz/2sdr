@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>2SDR — Mon mot de passe</title>
+<link rel="icon" href="logo-2sdr.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--noir:#000;--rouge:#E30613;--rouge-fonce:#B0040F;--blanc:#fff;--os:#D9D4CC;--or:#F5B700;
+  --f-display:"Big Shoulders Display",Impact,"Arial Narrow",sans-serif;--f-texte:"Archivo",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100svh;background:var(--noir);color:var(--blanc);font:400 16px/1.5 var(--f-texte);display:grid;place-items:center;padding:24px}
+:focus-visible{outline:3px solid var(--or);outline-offset:2px;border-radius:6px}
+a{color:inherit}
+.pass{width:min(420px,100%);background:var(--blanc);color:var(--noir);border:7px solid var(--blanc);border-radius:22px;overflow:hidden;box-shadow:0 30px 60px -24px rgba(227,6,19,.45)}
+.bande{background:var(--noir);color:var(--blanc);border-radius:14px 14px 0 0;padding:30px 22px 18px;position:relative;display:flex;align-items:center;justify-content:space-between}
+.bande::before{content:"";position:absolute;top:12px;left:50%;width:56px;height:10px;margin-left:-28px;border-radius:99px;background:#222}
+.bande img{height:64px;width:auto}
+.bande p{font:800 .95rem/1 var(--f-display);letter-spacing:.06em;color:var(--os)}
+.corps{padding:20px 22px 24px}
+.staff{font:900 4.6rem/.8 var(--f-display);color:var(--rouge)}
+h1{font:900 1.7rem/1 var(--f-display);text-transform:uppercase;margin:10px 0 8px}
+.intro{color:#3b3833;margin-bottom:16px;font-size:.95rem}
+form{display:grid;gap:14px}
+label{display:grid;gap:6px;font-weight:600;font-size:.9rem}
+input{font:500 1rem var(--f-texte);color:var(--noir);background:#F1EEE9;border:2px solid transparent;border-radius:8px;padding:13px 14px;width:100%}
+input:focus{outline:none;border-color:var(--rouge)}
+small{color:#5c5852;font-weight:500}
+.err{color:var(--rouge-fonce);font-size:.88rem;font-weight:600;min-height:1.2em}
+.btn{font:700 1rem/1 var(--f-texte);border:0;border-radius:999px;padding:16px 26px;background:var(--rouge);color:var(--blanc);cursor:pointer;text-decoration:none;text-align:center}
+.btn:hover{background:var(--rouge-fonce)}
+.btn:disabled{opacity:.5;cursor:wait}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="pass">
+  <div class="bande"><a href="index.html"><img src="logo-2sdr.png" alt="2SDR, retour au site"></a><p>ÉDITION 2027</p></div>
+  <div class="corps">
+    <p class="staff" aria-hidden="true">STAFF</p>
+    <p id="charge">Vérification du lien…</p>
+    <section id="v-form" hidden>
+      <h1 id="titre">Crée ton mot de passe</h1>
+      <p class="intro" id="intro"></p>
+      <form id="f" novalidate>
+        <input type="email" id="email" autocomplete="username" hidden readonly>
+        <label>Nouveau mot de passe <small>8 caractères minimum</small><input id="mdp" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Confirme-le<input id="mdp2" type="password" autocomplete="new-password" required></label>
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn" type="submit">Enregistrer mon mot de passe</button>
+      </form>
+    </section>
+    <section id="v-ko" hidden>
+      <h1>Lien expiré</h1>
+      <p class="intro" id="ko"></p>
+      <a class="btn" href="connexion.html" style="display:inline-block">Aller à la connexion</a>
+    </section>
+  </div>
+</main>
+<script src="api.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const t=new URLSearchParams(location.search).get("t")||"";
+// Le jeton ne reste pas dans l'historique du navigateur
+try{history.replaceState(null,"",location.pathname)}catch(e){}
+(async()=>{
+  try{
+    const j=await api("/api/jeton?t="+encodeURIComponent(t));
+    $("#email").value=j.email;
+    if(j.type==="reset"){$("#titre").textContent="Nouveau mot de passe";$("#intro").textContent=`Choisis un nouveau mot de passe pour ${j.email}.`}
+    else $("#intro").textContent=j.admin?`Accès à l'administration pour ${j.email}.`:`Bienvenue ${j.prenom} ! Ce mot de passe te servira à te connecter à ton espace bénévole avec ${j.email}.`;
+    $("#v-form").hidden=false;$("#mdp").focus();
+  }catch(x){$("#ko").textContent=x.message;$("#v-ko").hidden=false}
+  finally{$("#charge").hidden=true}
+})();
+$("#f").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const a=$("#mdp"),b=$("#mdp2"),err=$("#err"),btn=$("#f .btn");
+  if(a.value.length<8){err.textContent="Choisis un mot de passe d'au moins 8 caractères.";return a.focus()}
+  if(a.value!==b.value){err.textContent="Les deux mots de passe ne sont pas identiques.";return b.focus()}
+  err.textContent="";btn.disabled=true;
+  try{const r=await api("/api/mot-de-passe",{body:{token:t,password:a.value}});location.href=r.admin?"admin.html":"benevoles.html"}
+  catch(x){err.textContent=x.message;btn.disabled=false}
+});
+</script>
+</body>
+</html>
