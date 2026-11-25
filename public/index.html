@@ -7,6 +7,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+// Mode allégé automatique sur les machines sans accélération graphique
+(function(){try{
+  if(localStorage.getItem("2sdr-mode")==="complet")return;
+  if(localStorage.getItem("2sdr-mode")==="leger"){document.documentElement.classList.add("leger");return}
+  var g=document.createElement("canvas").getContext("webgl"),d=g&&g.getExtension("WEBGL_debug_renderer_info");
+  var r=g?(d?g.getParameter(d.UNMASKED_RENDERER_WEBGL):""):"aucun";
+  if(!g||/SwiftShader|Basic Render|llvmpipe|Software/i.test(r))document.documentElement.classList.add("leger");
+}catch(e){}})();
+</script>
 <style>
 /* ============ TOKENS 2SDR ============ */
 :root{
@@ -484,6 +494,13 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 .lecteur-vide b{display:block;font:900 2.4rem/1 var(--f-display);text-transform:uppercase;color:var(--blanc);margin-bottom:8px}
 .lecteur-bas{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
 .lecteur-bas button{background:var(--blanc);color:var(--noir);border:0;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer}
+/* Mode allégé : on garde le logo, le D qui bat, les deux plongeurs et la foule ; le reste est figé */
+.leger .fond-rock,.leger .particules,.leger .suivi,.leger .flash{display:none}
+.leger .spots i,.leger .spots::after,.leger .eq i,.leger .foule .bras,.leger .clip .ph::after,.leger .clip .lire::after,.leger .kids .notes{animation:none!important}
+.leger .eq i{transform:scaleY(var(--h))}
+.leger .foule .p{animation-duration:.7s}
+.leger .ticker-in,.leger .pellicule-in{animation-duration:60s}
+.leger .ticker{transform:none}
 /* Pause des animations hors écran */
 .pause,.pause *,.pause::before,.pause::after,.pause *::before,.pause *::after{animation-play-state:paused!important}
 .hero.pause .particules,.hero.pause .spots{visibility:hidden}
@@ -990,7 +1007,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
   document.getElementById("particules").innerHTML=Array.from({length:12},(_,i)=>`<i class="${i%3?"":"etoile"}" style="--x:${(Math.random()*100).toFixed(1)}%;--t:${(10+Math.random()*16)|0}px;--c:${i%2?"var(--rouge)":"#fff"};--d:${(9+Math.random()*9).toFixed(1)}s;--o:-${(Math.random()*15).toFixed(1)}s"></i>`).join("");
   // Glitch + flash de scène
   const flash=document.getElementById("flash");
-  if(!calme)(function boucle(){setTimeout(()=>{titre.classList.remove("glitch");void titre.offsetWidth;titre.classList.add("glitch");
+  if(!calme&&!document.documentElement.classList.contains("leger"))(function boucle(){setTimeout(()=>{titre.classList.remove("glitch");void titre.offsetWidth;titre.classList.add("glitch");
     flash.classList.remove("on");void flash.offsetWidth;flash.classList.add("on");boucle()},3500+Math.random()*3000)})();
   // Parallaxe au scroll
   let tic=false;
@@ -1019,6 +1036,12 @@ api("/api/public").then(({params,groupes})=>{
     m.innerHTML="<b>Complet pour cette année</b><p>Les inscriptions bénévoles sont closes. Écris-nous à contact@2sdr.fr pour être sur la liste de l'an prochain.</p>";
   }
 }).catch(()=>{});
+
+/* ===== Mesure de fluidité au chargement ===== */
+if(!document.documentElement.classList.contains("leger")){
+  setTimeout(()=>{let n=0;const t0=performance.now();(function f(){n++;if(performance.now()-t0<1500)requestAnimationFrame(f);
+    else if(!document.hidden&&n/1.5<30){try{if(localStorage.getItem("2sdr-mode")!=="complet")document.documentElement.classList.add("leger")}catch(e){document.documentElement.classList.add("leger")}}})()},2500);
+}
 
 /* ===== Newsletter ===== */
 document.getElementById("form-nl").addEventListener("submit",e=>{
