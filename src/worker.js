@@ -12,7 +12,8 @@ const CRENEAUX = ["M", "AM", "S"];
 const REPAS = { montage: ["mfrM", "mfrS"], festival: ["festM", "festS"], demontage: ["mfrM", "mfrS"] };
 const POLES = ["Restauration", "Bar", "Montage/Démontage", "Accueil", "Sécurité", "Kids du rock"];
 const TAILLES = ["XS", "S", "M", "L", "XL", "XXL"];
-const DOCS = ["params", "besoins", "merch", "groupes", "inventaire", "campagnes", "responsabilites"];
+const DOCS = ["params", "besoins", "merch", "groupes", "inventaire", "campagnes", "responsabilites", "budget", "asso"];
+const ACCES = ["", "Mécènes", "Trésorerie", "Mécènes + trésorerie"];
 const SESSION_JOURS = 30;
 const PBKDF2_ITER = 100000;
 
@@ -46,9 +47,17 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS demandes_mecenat (
     id INTEGER PRIMARY KEY AUTOINCREMENT, entreprise TEXT NOT NULL, contact TEXT DEFAULT '', email TEXT NOT NULL, tel TEXT DEFAULT '',
     type TEXT DEFAULT '', montant TEXT DEFAULT '', message TEXT DEFAULT '', statut TEXT NOT NULL DEFAULT 'Nouvelle', cree_le TEXT NOT NULL DEFAULT (datetime('now')))`,
+  `CREATE TABLE IF NOT EXISTS operations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, libelle TEXT NOT NULL, categorie TEXT DEFAULT '', type TEXT NOT NULL DEFAULT 'depense',
+    montant REAL NOT NULL DEFAULT 0, mode TEXT DEFAULT '', piece TEXT DEFAULT '', statut TEXT NOT NULL DEFAULT 'Réglé', don_id INTEGER,
+    par TEXT DEFAULT '', cree_le TEXT NOT NULL DEFAULT (datetime('now')))`,
+  `CREATE TABLE IF NOT EXISTS dons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, donateur TEXT NOT NULL, type_donateur TEXT NOT NULL DEFAULT 'Entreprise', adresse TEXT DEFAULT '',
+    nature TEXT NOT NULL DEFAULT 'Numéraire', description TEXT DEFAULT '', montant REAL NOT NULL DEFAULT 0, date TEXT NOT NULL, mode TEXT DEFAULT '',
+    recu_num TEXT, recu_date TEXT, par TEXT DEFAULT '', cree_le TEXT NOT NULL DEFAULT (datetime('now')))`,
 ];
 // Colonnes ajoutées après la première mise en ligne
-const MIGRATIONS = [`ALTER TABLE benevoles ADD COLUMN responsabilite TEXT DEFAULT ''`, `ALTER TABLE mecenes ADD COLUMN fond TEXT DEFAULT 'clair'`];
+const MIGRATIONS = [`ALTER TABLE benevoles ADD COLUMN responsabilite TEXT DEFAULT ''`, `ALTER TABLE mecenes ADD COLUMN fond TEXT DEFAULT 'clair'`, `ALTER TABLE benevoles ADD COLUMN acces TEXT DEFAULT ''`];
 let pret = false;
 async function init(env) {
   if (pret) return;
@@ -226,13 +235,14 @@ const CHAMPS_BENEVOLE = {
   coupe: (v) => (["Homme", "Femme"].includes(v) ? v : "Homme"), covoit: (v) => (v ? 1 : 0),
   dispo: (v) => JSON.stringify(nettoyerDispo(v)),
   responsabilite: (v) => txt(v, 60),
+  acces: (v) => (ACCES.includes(v) ? v : ""),
 };
 function versAdmin(b) {
   return {
     id: b.id, prenom: b.prenom, nom: b.nom, email: b.email || "", tel: b.tel || "", ville: b.ville || "", pole: b.pole || "",
     statut: b.statut, chef: !!b.chef, role: b.role || "", taille: b.taille, coupe: b.coupe, covoit: !!b.covoit,
     dispo: JSON.parse(b.dispo || "{}"), poles_souhait: JSON.parse(b.poles_souhait || "[]"), dispo_souhait: JSON.parse(b.dispo_souhait || "[]"),
-    message: b.message || "", responsabilite: b.responsabilite || "", cmd: b.cmd ? JSON.parse(b.cmd) : null, cmd_ok: !!b.cmd_ok, compte: !!b.pass_hash, cree_le: b.cree_le,
+    message: b.message || "", responsabilite: b.responsabilite || "", acces: b.acces || "", cmd: b.cmd ? JSON.parse(b.cmd) : null, cmd_ok: !!b.cmd_ok, compte: !!b.pass_hash, cree_le: b.cree_le,
   };
 }
 
@@ -405,7 +415,7 @@ async function routeMoi(env, req) {
   }
   return json({
     ok: true,
-    moi: { id: b.id, prenom: b.prenom, nom: b.nom, email: b.email, tel: b.tel, ville: b.ville, pole: b.pole, chef: !!b.chef, role: b.role, covoit: !!b.covoit, taille: b.taille, coupe: b.coupe, responsabilite: b.responsabilite || "" },
+    moi: { id: b.id, prenom: b.prenom, nom: b.nom, email: b.email, tel: b.tel, ville: b.ville, pole: b.pole, chef: !!b.chef, role: b.role, covoit: !!b.covoit, taille: b.taille, coupe: b.coupe, responsabilite: b.responsabilite || "", acces: b.acces || "" },
     config: { deadline: params.deadline, verrouille: !!params.verrou, date: params.date },
     planning: JSON.parse(b.dispo || "{}"), cmd: b.cmd ? JSON.parse(b.cmd) : null, cmd_ok: !!b.cmd_ok,
   });
@@ -514,6 +524,16 @@ async function routeStocks(env, req, id, sous) {
   echec("Action inconnue.", 405);
 }
 
+/* ================= Droits de gestion (admins + bénévoles habilités) ================= */
+async function gestionnaire(env, req, droit) {
+  const s = await session(env, req);
+  if (s.aid) { const a = await env.DB.prepare("SELECT nom, email FROM admins WHERE id = ?").bind(s.aid).first(); if (a) return { qui: a.nom || a.email, admin: true }; }
+  if (!s.bid) echec("Connecte-toi pour accéder à cette page.", 401);
+  const b = await env.DB.prepare("SELECT * FROM benevoles WHERE id = ?").bind(s.bid).first();
+  if (!b || b.statut !== "Validé" || !(b.acces || "").toLowerCase().includes(droit)) echec("Cette page est réservée aux personnes habilitées par l'organisation.", 403);
+  return { qui: `${b.prenom} ${b.nom}`.trim(), admin: false };
+}
+
 /* ================= Mécénat ================= */
 async function routeDemandeMecenat(env, req) {
   const d = await corps(req);
@@ -547,8 +567,14 @@ function logoValide(l) {
   if (l.length > 700000) echec("Logo trop lourd (500 Ko maximum).");
   return l;
 }
+async function routeGestionMecenes(env, req) {
+  const g = await gestionnaire(env, req, "mécènes");
+  const { results: mecenes } = await env.DB.prepare("SELECT id, nom, lien, logo IS NOT NULL a_logo, ordre, actif, maj, fond FROM mecenes ORDER BY ordre, id").all();
+  const { results: demandes } = await env.DB.prepare("SELECT * FROM demandes_mecenat ORDER BY id DESC").all();
+  return json({ ok: true, qui: g.qui, admin: g.admin, mecenes: mecenes.map((m) => ({ ...m, actif: !!m.actif, logo: m.a_logo ? `/api/mecenes/${m.id}/logo?v=${m.maj}` : "" })), demandes });
+}
 async function routeAdminMecenes(env, req, id) {
-  await adminConnecte(env, req);
+  await gestionnaire(env, req, "mécènes");
   const m = req.method;
   if (m === "POST" && !id) {
     const d = await corps(req);
@@ -576,12 +602,102 @@ async function routeAdminMecenes(env, req, id) {
   echec("Action inconnue.", 405);
 }
 async function routeAdminDemande(env, req, id) {
-  await adminConnecte(env, req);
+  await gestionnaire(env, req, "mécènes");
   const d = await corps(req);
   if (req.method === "DELETE" || d.supprimer) { await env.DB.prepare("DELETE FROM demandes_mecenat WHERE id = ?").bind(id).run(); return json({ ok: true }); }
   const st = ["Nouvelle", "Contactée", "Acceptée", "Refusée"].includes(d.statut) ? d.statut : "Nouvelle";
   await env.DB.prepare("UPDATE demandes_mecenat SET statut = ? WHERE id = ?").bind(st, id).run();
   return json({ ok: true });
+}
+
+/* ================= Trésorerie ================= */
+const euros = (v) => { const n = Number(String(v ?? "").replace(/\s/g, "").replace(",", ".")); return Number.isFinite(n) ? Math.round(Math.abs(n) * 100) / 100 : 0; };
+const dateIso = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? String(v) : aujourdhui());
+async function routeTresorerie(env, req, url) {
+  const g = await gestionnaire(env, req, "trésorerie");
+  const p = url.pathname.replace(/\/+$/, ""), m = req.method;
+  let r;
+  if (p === "/api/tresorerie" && m === "GET") {
+    const { results: operations } = await env.DB.prepare("SELECT * FROM operations ORDER BY date DESC, id DESC").all();
+    const { results: dons } = await env.DB.prepare("SELECT * FROM dons ORDER BY date DESC, id DESC").all();
+    const D = await docs(env, ["budget", "asso", "merch"]);
+    const merchCA = D.merch.filter((x) => !x.staff).reduce((s, x) => s + (x.vendu || 0) * (x.prix || 0), 0);
+    return json({ ok: true, qui: g.qui, admin: g.admin, operations, dons, budget: D.budget, asso: D.asso, merchCA });
+  }
+  if (p === "/api/tresorerie/budget" && m === "PUT") {
+    const d = await corps(req);
+    const b = (Array.isArray(d.budget) ? d.budget : []).filter((x) => txt(x.cat)).map((x) => ({ cat: txt(x.cat, 80), type: x.type === "recette" ? "recette" : "depense", prevu: euros(x.prevu) }));
+    await env.DB.prepare("INSERT INTO docs (k, v) VALUES ('budget', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(JSON.stringify(b)).run();
+    return json({ ok: true });
+  }
+  if (p === "/api/tresorerie/asso" && m === "PUT") {
+    const d = await corps(req);
+    const a = { nom: txt(d.nom, 150), adresse: txt(d.adresse, 300), objet: txt(d.objet, 400), identifiant: txt(d.identifiant, 80), signataire: txt(d.signataire, 120), qualite: txt(d.qualite, 80) };
+    await env.DB.prepare("INSERT INTO docs (k, v) VALUES ('asso', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(JSON.stringify(a)).run();
+    return json({ ok: true });
+  }
+  const champsOp = (d) => {
+    if (!txt(d.libelle)) echec("Indique le libellé de l'opération.");
+    const montant = euros(d.montant);
+    if (!montant) echec("Indique un montant supérieur à zéro.");
+    return [dateIso(d.date), txt(d.libelle, 200), txt(d.categorie, 80), d.type === "recette" ? "recette" : "depense", montant, txt(d.mode, 40), txt(d.piece, 120), d.statut === "À régler" ? "À régler" : "Réglé"];
+  };
+  if (p === "/api/tresorerie/operations" && m === "POST") {
+    const d = await corps(req);
+    const res = await env.DB.prepare("INSERT INTO operations (date, libelle, categorie, type, montant, mode, piece, statut, par) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(...champsOp(d), g.qui).run();
+    return json({ ok: true, id: res.meta.last_row_id });
+  }
+  if ((r = p.match(/^\/api\/tresorerie\/operations\/(\d+)$/))) {
+    if (m === "DELETE") { await env.DB.prepare("DELETE FROM operations WHERE id = ?").bind(+r[1]).run(); return json({ ok: true }); }
+    if (m === "PUT") {
+      const d = await corps(req);
+      await env.DB.prepare("UPDATE operations SET date = ?, libelle = ?, categorie = ?, type = ?, montant = ?, mode = ?, piece = ?, statut = ?, par = ? WHERE id = ?").bind(...champsOp(d), g.qui, +r[1]).run();
+      return json({ ok: true });
+    }
+  }
+  const champsDon = (d) => {
+    if (!txt(d.donateur)) echec("Indique le nom du donateur.");
+    const montant = euros(d.montant);
+    if (!montant) echec("Indique le montant du don ou la valeur du don en nature.");
+    return [txt(d.donateur, 150), d.type_donateur === "Particulier" ? "Particulier" : "Entreprise", txt(d.adresse, 300),
+      ["Numéraire", "En nature", "Compétences"].includes(d.nature) ? d.nature : "Numéraire", txt(d.description, 300), montant, dateIso(d.date), txt(d.mode, 40)];
+  };
+  if (p === "/api/tresorerie/dons" && m === "POST") {
+    const d = await corps(req);
+    const v = champsDon(d);
+    const res = await env.DB.prepare("INSERT INTO dons (donateur, type_donateur, adresse, nature, description, montant, date, mode, par) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(...v, g.qui).run();
+    const id = res.meta.last_row_id;
+    if (d.recette && v[3] === "Numéraire")
+      await env.DB.prepare("INSERT INTO operations (date, libelle, categorie, type, montant, mode, statut, don_id, par) VALUES (?, ?, 'Mécénat et dons', 'recette', ?, ?, 'Réglé', ?, ?)")
+        .bind(v[6], `Don de ${v[0]}`, v[5], v[7], id, g.qui).run();
+    return json({ ok: true, id });
+  }
+  if ((r = p.match(/^\/api\/tresorerie\/dons\/(\d+)(\/recu)?$/))) {
+    const id = +r[1];
+    const don = await env.DB.prepare("SELECT * FROM dons WHERE id = ?").bind(id).first();
+    if (!don) echec("Don introuvable.", 404);
+    if (r[2] && m === "POST") {
+      if (don.recu_num) return json({ ok: true, recu_num: don.recu_num });
+      const annee = don.date.slice(0, 4);
+      const n = await env.DB.prepare("SELECT COUNT(*) n FROM dons WHERE recu_num LIKE ?").bind(annee + "-%").first();
+      const num = `${annee}-${String(n.n + 1).padStart(3, "0")}`;
+      await env.DB.prepare("UPDATE dons SET recu_num = ?, recu_date = ? WHERE id = ?").bind(num, aujourdhui(), id).run();
+      return json({ ok: true, recu_num: num });
+    }
+    if (m === "DELETE") {
+      if (don.recu_num) echec("Ce don a déjà un reçu fiscal numéroté : il ne peut plus être supprimé.", 409);
+      await env.DB.batch([env.DB.prepare("DELETE FROM operations WHERE don_id = ?").bind(id), env.DB.prepare("DELETE FROM dons WHERE id = ?").bind(id)]);
+      return json({ ok: true });
+    }
+    if (m === "PUT") {
+      const d = await corps(req);
+      const v = champsDon(d);
+      if (don.recu_num && (v[0] !== don.donateur || v[5] !== don.montant || v[3] !== don.nature)) echec("Le reçu fiscal est déjà émis : le donateur, la nature et le montant ne peuvent plus changer.", 409);
+      await env.DB.prepare("UPDATE dons SET donateur = ?, type_donateur = ?, adresse = ?, nature = ?, description = ?, montant = ?, date = ?, mode = ?, par = ? WHERE id = ?").bind(...v, g.qui, id).run();
+      return json({ ok: true });
+    }
+  }
+  echec("Adresse inconnue.", 404);
 }
 
 /* ================= Admin ================= */
@@ -772,6 +888,8 @@ async function api(req, env, url) {
   if (p === "/api/admin/sync" && m === "POST") return routeSync(env, req);
   if (p === "/api/admin/admins" && m === "POST") return routeAdmins(env, req);
   if (p === "/api/mecenat" && m === "POST") return routeDemandeMecenat(env, req);
+  if (p === "/api/gestion/mecenes" && m === "GET") return routeGestionMecenes(env, req);
+  if (p.startsWith("/api/tresorerie")) return routeTresorerie(env, req, url);
   let r;
   if ((r = p.match(/^\/api\/mecenes\/(\d+)\/logo$/)) && m === "GET") return routeLogo(env, +r[1]);
   if (p === "/api/stocks") return routeStocks(env, req, null);

@@ -222,6 +222,8 @@ dialog.large{width:min(1100px,96vw)}
     <nav class="menu" id="menu" aria-label="Sections"></nav>
     <div class="side-bas">
       <a href="index.html">Voir le site</a>
+      <a href="tresorerie.html">Trésorerie</a>
+      <a href="gestion-mecenes.html">Page du resp. mécènes</a>
       <a href="benevoles.html">Vue bénévole</a>
       <a href="connexion.html" id="deco">Déconnexion</a>
     </div>
@@ -260,7 +262,7 @@ const BESOINS_DEF={
    ========================================================= */
 let D=null,META={mail:false,admins:[]},SNAP=null,enCours=null,aRefaire=false;
 const clone=o=>JSON.parse(JSON.stringify(o));
-const CH_B=["prenom","nom","email","tel","ville","pole","statut","chef","role","taille","coupe","covoit","dispo","responsabilite"];
+const CH_B=["prenom","nom","email","tel","ville","pole","statut","chef","role","taille","coupe","covoit","dispo","responsabilite","acces"];
 const CH_C=["email","prenom","source","date","statut"];
 async function charger(){
   const r=await api("/api/admin/etat");delete r.ok;META=r.meta;delete r.meta;D=r;SNAP=clone(D);
@@ -437,7 +439,7 @@ R.benevoles=()=>{
   <tbody>${l.map(b=>{const jours=Object.keys(b.dispo).length,rep=Object.values(b.dispo).reduce((s,d)=>s+d.repas.length,0);
     const souhait=b.statut!=="Validé"&&(b.poles_souhait?.length||b.dispo_souhait?.length)?`<span class="sous">Souhaite : ${esc([...(b.poles_souhait||[]),...(b.dispo_souhait||[])].join(", "))}</span>`:"";
     const acces=b.statut==="Validé"?(b.compte?`<span class="sous ok">Compte actif</span>`:`<button class="lien-acces" data-act="invite">Renvoyer l'accès</button>`):"";
-    return `<tr data-id="${b.id}"><td><span class="nom">${esc(b.prenom)} ${esc(b.nom)}</span><span class="sous">${esc(b.ville)}</span>${b.responsabilite?`<span class="badge b-chef" style="margin-top:4px">Resp. ${esc(b.responsabilite)}</span>`:""}${souhait}${b.message?`<span class="sous" title="${esc(b.message)}">« ${esc(b.message.slice(0,70))}${b.message.length>70?"…":""} »</span>`:""}${acces}</td>
+    return `<tr data-id="${b.id}"><td><span class="nom">${esc(b.prenom)} ${esc(b.nom)}</span><span class="sous">${esc(b.ville)}</span>${b.responsabilite?`<span class="badge b-chef" style="margin-top:4px">Resp. ${esc(b.responsabilite)}</span>`:""}${b.acces?`<span class="badge b-gris" style="margin-top:4px">${esc(b.acces)}</span>`:""}${souhait}${b.message?`<span class="sous" title="${esc(b.message)}">« ${esc(b.message.slice(0,70))}${b.message.length>70?"…":""} »</span>`:""}${acces}</td>
     <td><select class="champ" data-act="pole" aria-label="Pôle de ${esc(b.prenom)}">${POLES.map(p=>`<option ${p===b.pole?"selected":""}>${p}</option>`).join("")}</select></td>
     <td><button class="badge ${b.statut==="Validé"?"b-ok":"b-wait"}" data-act="statut">${b.statut}</button></td>
     <td><button class="badge ${b.chef?"b-chef":"b-gris"}" data-act="chef" aria-pressed="${b.chef}" title="Chef d'équipe">★</button></td>
@@ -447,8 +449,9 @@ R.benevoles=()=>{
 };
 const champsB=[{k:"prenom",l:"Prénom",req:1},{k:"nom",l:"Nom",req:1},{k:"email",l:"E-mail",t:"email"},{k:"tel",l:"Téléphone",t:"tel"},{k:"ville",l:"Ville"},
   {k:"pole",l:"Pôle",opts:POLES},{k:"statut",l:"Statut",opts:["Validé","En attente"]},{k:"taille",l:"Taille t-shirt",opts:TAILLES},{k:"coupe",l:"Coupe",opts:["Homme","Femme"]},
-  {k:"responsabilite",l:"Responsable de (stocks)",get opts(){return["Aucune",...((D&&D.responsabilites)||[])]}}];
-const nr=v=>{if(v.responsabilite==="Aucune")v.responsabilite="";return v};
+  {k:"responsabilite",l:"Responsable de (stocks)",get opts(){return["Aucune",...((D&&D.responsabilites)||[])]}},
+  {k:"acces",l:"Pages de gestion",opts:["Aucune","Mécènes","Trésorerie","Mécènes + trésorerie"]}];
+const nr=v=>{if(v.responsabilite==="Aucune")v.responsabilite="";if(v.acces==="Aucune")v.acces="";return v};
 A.benevoles=()=>{
   const re=()=>{const pos=$("#q-b").selectionStart;rendre();const q=$("#q-b");q.focus();q.setSelectionRange(pos,pos)};
   $("#q-b").oninput=e=>{fB.q=e.target.value;re()};

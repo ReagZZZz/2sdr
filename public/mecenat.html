@@ -55,7 +55,14 @@ section{padding:clamp(56px,8vw,96px) 0}
 .retour ul{list-style:none;display:grid;gap:10px}
 .retour li{display:flex;gap:12px;align-items:flex-start}
 .retour li::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;background:var(--rouge);margin-top:9px}
-.note{color:var(--gris);font-size:.92rem;border-left:3px solid var(--or);padding-left:14px}
+.fisc{background:var(--noir);border-radius:14px;padding:24px;border-top:4px solid var(--or)}
+.fisc h3{font:900 2rem/1 var(--f-display);text-transform:uppercase;margin-bottom:10px}
+.fisc p{color:var(--os);font-size:.96rem}
+.fisc dl{display:grid;gap:12px;margin:16px 0}
+.fisc dt{font:800 1.3rem/1 var(--f-display);text-transform:uppercase;color:var(--or)}
+.fisc dd{color:var(--os);font-size:.95rem;margin-top:4px}
+.fisc dd b{color:var(--blanc);font-size:1.1rem}
+.fisc .exemple{color:var(--blanc);font-weight:600}
 @media (max-width:820px){.retour{grid-template-columns:1fr}}
 
 .form-sec{background:var(--rouge)}
@@ -95,7 +102,7 @@ footer a{text-decoration:none}footer a:hover{color:var(--blanc)}
 <section class="hero">
   <div class="wrap">
     <h1>Faites monter le son <span>avec nous</span></h1>
-    <p class="chapo">Les Saints Sauveurs du Rock, c'est un festival rock associatif d'un soir à Saint-Sauveur-Lendelin, monté de A à Z par des bénévoles. Chaque mécène nous aide à garder des places abordables et un après-midi gratuit pour les enfants.</p>
+    <p class="chapo">Les Saints Sauveurs du Rock, c'est un festival rock associatif d'un soir à Saint-Sauveur-Lendelin, monté de A à Z par des bénévoles. Chaque mécène nous aide à garder des places abordables et un après-midi gratuit pour les enfants. Votre don est déductible à 60 % de votre impôt.</p>
     <a href="#proposer" class="btn btn-rouge">Proposer mon soutien</a>
   </div>
 </section>
@@ -124,10 +131,18 @@ footer a{text-decoration:none}footer a:hover{color:var(--blanc)}
         <h3 class="h2" style="font-size:clamp(1.8rem,3.4vw,2.6rem)">En retour</h3>
         <ul style="margin-top:16px">
           <li>Votre nom et votre logo dans le bandeau des mécènes, sur la page d'accueil du site.</li>
-          <li>Les autres contreparties (visibilité sur place, réseaux sociaux, invitations) se décident ensemble, selon la forme de votre soutien.</li>
+          <li>Les autres contreparties (visibilité sur place, réseaux sociaux, invitations) se décident ensemble, selon la forme de votre soutien. Elles restent modestes par rapport au don, pour préserver votre réduction d'impôt.</li>
         </ul>
       </div>
-      <p class="note">Selon le statut de l'association, un don peut ouvrir droit à une réduction d'impôt et à un reçu fiscal. Nous vous le confirmons lors de notre premier échange.</p>
+      <div class="fisc">
+        <h3>Une réduction d'impôt</h3>
+        <p>Les Saints Sauveurs du Rock ouvrent droit à la réduction d'impôt pour mécénat. Nous vous remettons un reçu fiscal pour chaque don.</p>
+        <dl>
+          <dt>Entreprise</dt><dd><b>60 %</b> du don déduits de votre impôt (sur les sociétés ou sur le revenu), dans la limite de 20 000 € ou de 0,5 % de votre chiffre d'affaires HT si ce montant est plus élevé. L'excédent se reporte sur les 5 exercices suivants. Les dons en nature et en compétences comptent, pour leur valeur.</dd>
+          <dt>Particulier</dt><dd><b>66 %</b> du don déduits de votre impôt sur le revenu, dans la limite de 20 % de votre revenu imposable.</dd>
+        </dl>
+        <p class="exemple">Exemple : un don de 1 000 € d'une entreprise lui revient à 400 € après réduction d'impôt.</p>
+      </div>
     </div>
   </div>
 </section>

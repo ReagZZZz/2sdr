@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2SDR — Gestion des mécènes</title>
+<link rel="icon" href="logo-2sdr.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="gestion.css">
+<style>
+.mec-liste{display:grid;gap:8px}
+.mec-carte{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:16px;align-items:center;background:var(--graphite);border-radius:var(--r);padding:10px 14px 10px 10px}
+.mec-carte.inactif{opacity:.55}
+.mec-logo{background:#fff;border-radius:10px;height:76px;display:grid;place-items:center;padding:8px;color:#000;font:900 1.1rem var(--f-display);text-transform:uppercase;text-align:center}
+.mec-logo img{max-width:100%;max-height:60px;object-fit:contain}
+.mec-info b{display:block;font-size:1.05rem}
+.mec-info a{text-decoration:none}.mec-info a:hover{text-decoration:underline}
+.mec-act{display:flex;gap:6px;align-items:center}
+.mec-act .ico:disabled{opacity:.3;cursor:default}
+.mec-apercu{background:#fff;border-radius:12px;min-height:110px;display:grid;place-items:center;padding:12px;color:#555}
+.mec-apercu img{max-width:100%;max-height:90px;object-fit:contain}
+.mec-logo.sombre,.mec-apercu.sombre{background:#1d1d1d;color:#fff}
+@media (max-width:700px){.mec-carte{grid-template-columns:110px 1fr}.mec-act{grid-column:1/-1;justify-content:flex-end}}
+</style>
+</head>
+<body>
+<header class="g-top"><div class="in">
+  <a href="index.html"><img src="logo-2sdr.png" alt="2SDR, accueil du site"></a>
+  <div class="t">Mécènes<small id="qui">Chargement…</small></div>
+  <nav><a href="mecenat.html" target="_blank" rel="noopener">Page publique</a><a href="benevoles.html" id="l-ben">Espace bénévole</a><a href="admin.html" id="l-adm" hidden>Admin</a><a href="connexion.html" id="deco">Déconnexion</a></nav>
+</div></header>
+<main class="g-main" id="main"><p class="vide">Chargement…</p></main>
+<dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="api.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("on"),2600)}
+function ouvrirDlg(html){$("#dlg-form").innerHTML=html;$("#dlg").showModal()}
+const IC={edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>'};
+let G={mecenes:[],demandes:[]};
+
+async function charger(){G=await api("/api/gestion/mecenes");$("#qui").textContent="Connecté : "+G.qui;$("#l-adm").hidden=!G.admin;if(G.admin)$("#l-ben").hidden=true}
+function rendre(){
+  const M=G.mecenes,Dm=G.demandes,st={"Nouvelle":"b-wait","Contactée":"b-gris","Acceptée":"b-ok","Refusée":"b-ko"};
+  const nouv=Dm.filter(d=>d.statut==="Nouvelle").length,acc=Dm.filter(d=>d.statut==="Acceptée").length;
+  $("#main").innerHTML=`<div class="tete"><div><h1>Mécènes</h1><p>Les mécènes affichés défilent sur l'accueil et sur la page « Devenir mécène », dans cet ordre.</p></div>
+    <div class="actions"><button class="btn btn-rouge" id="add-m">+ Ajouter un mécène</button></div></div>
+  <div class="kpis"><div class="kpi ${nouv?"rouge":""}"><b>${nouv}</b><span>demande${nouv>1?"s":""} à traiter</span></div>
+    <div class="kpi"><b>${M.filter(m=>m.actif).length}</b><span>mécènes affichés</span></div>
+    <div class="kpi"><b>${acc}</b><span>demande${acc>1?"s":""} acceptée${acc>1?"s":""}</span></div></div>
+  <div class="encadre"><b>À dire aux mécènes :</b> l'association ouvre droit à la réduction d'impôt.
+    Une entreprise déduit <b>60 %</b> de son don (en argent, en nature ou en compétences) de son impôt, dans la limite de <b>20 000 €</b> ou de <b>0,5 % de son chiffre d'affaires HT</b> si c'est plus élevé ; l'excédent se reporte sur 5 ans.
+    Un particulier déduit <b>66 %</b> de son don, dans la limite de 20 % de son revenu imposable. Les contreparties doivent rester modestes par rapport au don.
+    Le reçu fiscal est édité par le trésorier une fois le don encaissé.</div>
+  ${M.length?`<div class="mec-liste">${M.map((m,i)=>`<article class="mec-carte ${m.actif?"":"inactif"}" data-id="${m.id}">
+      <div class="mec-logo ${m.fond==="sombre"?"sombre":""}">${m.logo?`<img src="${esc(m.logo)}" alt="">`:`<span>${esc(m.nom)}</span>`}</div>
+      <div class="mec-info"><b>${esc(m.nom)}</b>${m.lien?`<a class="sous" href="${esc(m.lien)}" target="_blank" rel="noopener">${esc(m.lien.replace(/^https?:\/\//,""))}</a>`:`<span class="sous">Pas de lien</span>`}</div>
+      <div class="mec-act">
+        <button class="ico" data-act="haut" aria-label="Monter ${esc(m.nom)}" ${i?"":"disabled"}>↑</button><button class="ico" data-act="bas" aria-label="Descendre ${esc(m.nom)}" ${i<M.length-1?"":"disabled"}>↓</button>
+        <button class="badge ${m.actif?"b-ok":"b-gris"}" data-act="actif">${m.actif?"Affiché":"Masqué"}</button>
+        <button class="ico" data-act="edit" aria-label="Modifier">${IC.edit}</button><button class="ico danger" data-act="suppr" aria-label="Supprimer">${IC.del}</button></div>
+    </article>`).join("")}</div>`:`<p class="vide carte">Aucun mécène pour l'instant. Ajoute le premier : son nom et son logo apparaîtront tout de suite sur le site.</p>`}
+  <div class="tete" style="margin:30px 0 12px"><div><h1 style="font-size:2rem">Demandes reçues</h1><p>Envoyées depuis la page « Devenir mécène ». Clique sur un statut pour le faire avancer.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Structure</th><th>Contact</th><th>Soutien proposé</th><th>Reçue le</th><th>Statut</th><th></th></tr></thead><tbody id="dem">
+  ${Dm.map(d=>`<tr data-id="${d.id}"><td><span class="nom">${esc(d.entreprise)}</span>${d.message?`<span class="sous" title="${esc(d.message)}">« ${esc(d.message.slice(0,90))}${d.message.length>90?"…":""} »</span>`:""}</td>
+    <td><span>${esc(d.contact||"—")}</span><span class="sous"><a href="mailto:${esc(d.email)}">${esc(d.email)}</a>${d.tel?" · "+esc(d.tel):""}</span></td>
+    <td>${esc(d.type||"—")}<span class="sous">${esc(d.montant||"")}</span></td>
+    <td>${new Date(d.cree_le.replace(" ","T")+"Z").toLocaleDateString("fr-FR")}</td>
+    <td><button class="badge ${st[d.statut]||"b-gris"}" data-act="statut">${esc(d.statut)}</button></td>
+    <td><div class="stock-l"><button class="btn btn-gris btn-s" data-act="promo">Ajouter comme mécène</button><button class="ico danger" data-act="del" aria-label="Supprimer la demande">${IC.del}</button></div></td></tr>`).join("")||`<tr><td colspan="6" class="vide">Aucune demande pour l'instant.</td></tr>`}</tbody></table></div>`;
+  brancher();
+}
+function preparerLogo(fichier){
+  return new Promise((ok,ko)=>{
+    if(!/^image\//.test(fichier.type))return ko(new Error("Choisis une image (PNG, JPG, WebP ou SVG)."));
+    const img=new Image(),url=URL.createObjectURL(fichier);
+    img.onload=()=>{const k=Math.min(1,600/(img.naturalWidth||600),300/(img.naturalHeight||300));
+      const c=document.createElement("canvas");c.width=Math.max(1,Math.round((img.naturalWidth||600)*k));c.height=Math.max(1,Math.round((img.naturalHeight||300)*k));
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+      let d=c.toDataURL("image/png");if(d.length>650000)d=c.toDataURL("image/webp",.9);
+      if(d.length>650000)return ko(new Error("Logo trop lourd, même réduit : essaie une image plus simple."));
+      let lum=0,n=0;try{const px=c.getContext("2d").getImageData(0,0,c.width,c.height).data;for(let i=0;i<px.length;i+=16){if(px[i+3]>128){lum+=(px[i]*299+px[i+1]*587+px[i+2]*114)/1000;n++}}}catch(e){}
+      ok({data:d,fond:n&&lum/n>200?"sombre":"clair"})};
+    img.onerror=()=>ko(new Error("Impossible de lire cette image."));img.src=url;
+  });
+}
+function formMecene(m,pre){
+  m=m||{};let logo,fond=m.fond||"clair";
+  ouvrirDlg(`<h2>${m.id?esc(m.nom):"Nouveau mécène"}</h2><div class="form">
+    <label class="plein">Nom<input class="champ" id="m-nom" value="${esc(m.nom||pre?.nom||"")}" required></label>
+    <label class="plein">Site web <span class="sous">facultatif, le logo y mènera</span><input class="champ" id="m-lien" type="url" placeholder="https://…" value="${esc(m.lien||"")}"></label>
+    <label class="plein">Logo <span class="sous">PNG transparent de préférence</span><input class="champ" id="m-logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label>
+    <div class="plein mec-apercu ${fond==="sombre"?"sombre":""}" id="m-ap">${m.logo?`<img src="${esc(m.logo)}" alt="">`:`<span class="sous">Aperçu du logo</span>`}</div>
+    <label class="plein">Plaque derrière le logo<select class="champ" id="m-fond"><option value="clair" ${fond==="clair"?"selected":""}>Claire (logo foncé)</option><option value="sombre" ${fond==="sombre"?"selected":""}>Sombre (logo clair ou blanc)</option></select></label></div>
+    <p class="ko" id="m-err" role="alert" style="min-height:1.2em;font-weight:600"></p>
+    <div class="form-bas"><button class="btn btn-gris" value="x" formnovalidate>Annuler</button><button type="button" class="btn btn-rouge" id="m-ok">Enregistrer</button></div>`);
+  $("#m-logo").onchange=async e=>{const f=e.target.files[0];if(!f)return;$("#m-err").textContent="";
+    try{const r=await preparerLogo(f);logo=r.data;fond=r.fond;$("#m-fond").value=fond;$("#m-ap").classList.toggle("sombre",fond==="sombre");$("#m-ap").innerHTML=`<img src="${logo}" alt="">`}catch(x){$("#m-err").textContent=x.message;logo=undefined}};
+  $("#m-fond").onchange=e=>{fond=e.target.value;$("#m-ap").classList.toggle("sombre",fond==="sombre")};
+  $("#m-ok").onclick=async e=>{const nom=$("#m-nom").value.trim(),lien=$("#m-lien").value.trim();
+    if(!nom){$("#m-err").textContent="Indique le nom du mécène.";return $("#m-nom").focus()}
+    if(lien&&!/^https?:\/\//.test(lien)){$("#m-err").textContent="Le lien doit commencer par https://";return}
+    e.target.disabled=true;
+    try{const body={nom,lien,fond};if(logo!==undefined)body.logo=logo;
+      await api(m.id?`/api/admin/mecenes/${m.id}`:"/api/admin/mecenes",{method:m.id?"PUT":"POST",body});
+      $("#dlg").close();await charger();rendre();toast(m.id?"Mécène mis à jour":"Mécène ajouté : il apparaît sur le site")}
+    catch(x){$("#m-err").textContent=x.message;e.target.disabled=false}};
+}
+function brancher(){
+  $("#add-m").onclick=()=>formMecene();
+  const liste=document.querySelector(".mec-liste");
+  if(liste)liste.addEventListener("click",async e=>{const t=e.target.closest("[data-act]");if(!t)return;const i=G.mecenes.findIndex(x=>x.id==t.closest("[data-id]").dataset.id),m=G.mecenes[i];
+    try{
+      if(t.dataset.act==="edit")return formMecene(m);
+      if(t.dataset.act==="actif")await api(`/api/admin/mecenes/${m.id}`,{method:"PUT",body:{actif:!m.actif}});
+      if(t.dataset.act==="suppr"){if(!t.classList.contains("conf")){t.classList.add("conf");t.style.background="var(--rouge)";toast("Clique encore pour supprimer "+m.nom);setTimeout(()=>{t.classList.remove("conf");t.style.background=""},3000);return}
+        await api(`/api/admin/mecenes/${m.id}`,{method:"DELETE"})}
+      if(t.dataset.act==="haut"||t.dataset.act==="bas"){const j=t.dataset.act==="haut"?i-1:i+1;const ordre=G.mecenes.map(x=>x.id);[ordre[i],ordre[j]]=[ordre[j],ordre[i]];
+        await Promise.all(ordre.map((id,k)=>api(`/api/admin/mecenes/${id}`,{method:"PUT",body:{ordre:k}})))}
+      await charger();rendre();
+    }catch(x){toast(x.message)}});
+  $("#dem").addEventListener("click",async e=>{const t=e.target.closest("[data-act]");if(!t)return;const d=G.demandes.find(x=>x.id==t.closest("tr").dataset.id);
+    try{
+      if(t.dataset.act==="statut"){const S=["Nouvelle","Contactée","Acceptée","Refusée"];await api(`/api/admin/demandes/${d.id}`,{body:{statut:S[(S.indexOf(d.statut)+1)%S.length]}})}
+      if(t.dataset.act==="del"){if(!t.classList.contains("conf")){t.classList.add("conf");t.style.background="var(--rouge)";toast("Clique encore pour supprimer la demande");setTimeout(()=>{t.classList.remove("conf");t.style.background=""},3000);return}
+        await api(`/api/admin/demandes/${d.id}`,{body:{supprimer:true}})}
+      if(t.dataset.act==="promo"){if(d.statut!=="Acceptée")await api(`/api/admin/demandes/${d.id}`,{body:{statut:"Acceptée"}});await charger();rendre();return formMecene(null,{nom:d.entreprise})}
+      await charger();rendre();
+    }catch(x){toast(x.message)}});
+}
+$("#deco").addEventListener("click",async e=>{e.preventDefault();try{await api("/api/logout",{method:"POST"})}catch(x){}location.href="connexion.html"});
+(async()=>{try{await charger();rendre()}catch(x){if(x.status===401)return location.replace("connexion.html");$("#main").innerHTML=`<p class="vide">${esc(x.message)}</p>`}})();
+</script>
+</body>
+</html>

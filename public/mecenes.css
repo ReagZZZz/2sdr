@@ -23,4 +23,19 @@ a.mec:hover{transform:translateY(-3px)}
 .mec-cadre.vide{padding:30px 0}
 .pause .mec-piste{animation-play-state:paused}
 @media (prefers-reduced-motion:reduce){.mec-piste{animation:none}.mec-fenetre{overflow-x:auto}}
+/* Version compacte, en haut de l'accueil */
+.mec-bandeau-haut{background:#000;border-bottom:1px solid #222;position:relative;z-index:1;padding-top:6px}
+.mec-bandeau-haut .in{display:flex;align-items:center;gap:20px;max-width:1240px;margin:0 auto;padding:16px clamp(20px,5vw,64px)}
+.mec-bandeau-haut .lbl{flex:none;font:900 1.15rem/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;color:#9A958E;letter-spacing:.02em}
+.mec-bandeau-haut .lbl a{color:#fff;text-decoration:none;display:block;font:600 .78rem Archivo,system-ui,sans-serif;text-transform:none;letter-spacing:0;margin-top:5px;color:#ff6b73}
+.mec-bandeau-haut .lbl a:hover{text-decoration:underline}
+.mec-bandeau-haut .mec-fenetre{flex:1;min-width:0}
+.mec-bandeau-haut .mec{width:128px;height:60px;padding:8px 12px;margin-right:10px;border-radius:10px}
+.mec-bandeau-haut .mec img{max-height:42px}
+.mec-bandeau-haut .mec-nom{display:none}
+.mec-bandeau-haut .mec-nom-seul{font-size:1rem}
+.mec-bandeau-haut .mec-piste{animation-duration:calc(var(--duree,40s) * .8)}
+.mec-mini-vide{color:#D9D4CC;font-weight:600;text-decoration:none;border:2px dashed #3a3a3a;border-radius:10px;padding:16px 18px;display:block;text-align:center}
+.mec-mini-vide:hover{border-color:#E30613;color:#fff}
+@media (max-width:640px){.mec-bandeau-haut .in{flex-direction:column;align-items:stretch;gap:10px}.mec-bandeau-haut .lbl{display:flex;justify-content:space-between;align-items:baseline}.mec-bandeau-haut .lbl a{margin:0}}
 @media (max-width:560px){.mec{width:150px;height:104px;margin-right:12px}.mec img{max-height:56px}}

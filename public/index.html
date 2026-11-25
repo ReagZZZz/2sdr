@@ -567,6 +567,14 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 
 <div class="ticker" aria-hidden="true"><div class="ticker-in"><span>Samedi 30 octobre 2027</span><span>3 groupes en concert</span><span>Les Kids du rock gratuits</span><span>Une heure de rock en plus</span><span>Saint-Sauveur-Lendelin</span><span>18 Fucking Rabbits!</span><span>Samedi 30 octobre 2027</span><span>3 groupes en concert</span><span>Les Kids du rock gratuits</span><span>Une heure de rock en plus</span><span>Saint-Sauveur-Lendelin</span><span>18 Fucking Rabbits!</span></div></div>
 
+<!-- Mécènes : bandeau compact en haut de page -->
+<aside class="mec-bandeau-haut" aria-label="Avec le soutien de nos mécènes">
+  <div class="in">
+    <p class="lbl">Avec le soutien de<a href="mecenat.html">Devenir mécène</a></p>
+    <div class="mec-fenetre" id="mecenes-haut"></div>
+  </div>
+</aside>
+
 <!-- Accès rapide -->
 <nav class="acces" aria-label="Accès rapide">
   <div class="wrap">
@@ -1014,7 +1022,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
   if("IntersectionObserver" in window){
     const vis=new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle("pause",!e.isIntersecting);
       if(e.target===hero)anims.forEach(a=>e.isIntersecting?a.play():a.pause())}),{rootMargin:"100px"});
-    document.querySelectorAll(".hero,.ticker,.rewind,.kids,.benev,.billet,.mecenes-sec").forEach(el=>vis.observe(el));
+    document.querySelectorAll(".hero,.ticker,.rewind,.kids,.benev,.billet,.mecenes-sec,.mec-bandeau-haut").forEach(el=>vis.observe(el));
   }
   document.addEventListener("visibilitychange",()=>{document.getElementById("fond-rock").classList.toggle("pause",document.hidden)});
 
@@ -1034,6 +1042,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
 /* ===== Données du festival (modifiables dans l'admin) ===== */
 api("/api/public").then(({params,groupes,mecenes})=>{
   bandeauMecenes(document.getElementById("mecenes-bande"),mecenes);
+  bandeauMecenes(document.getElementById("mecenes-haut"),mecenes,{mini:true});
   if(params.billetterie){BILLETTERIE=params.billetterie;document.querySelectorAll("[data-billet]").forEach(a=>{a.href=BILLETTERIE;a.target="_blank";a.rel="noopener"})}
   if(params.date){const t=new Date(params.date+"T14:00:00+02:00").getTime();if(!isNaN(t))CIBLE=t;compte()}
   if(groupes.length){

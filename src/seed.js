@@ -290,5 +290,120 @@ export const SEED = {
   "Kids",
   "Élec",
   "Nettoyage"
- ]
+ ],
+ "budget": [
+  {
+   "cat": "Billetterie",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Bar",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Restauration",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Merch",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Mécénat et dons",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Subventions",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Adhésions",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Autre recette",
+   "type": "recette",
+   "prevu": 0
+  },
+  {
+   "cat": "Artistes et cachets",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Technique (son, lumière, scène)",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Location et matériel",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Achats bar",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Achats restauration",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Merch (fabrication)",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Communication et impression",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Sécurité",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Assurances et SACEM",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Bénévoles (repas, t-shirts)",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Logistique et transport",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Frais bancaires",
+   "type": "depense",
+   "prevu": 0
+  },
+  {
+   "cat": "Autre dépense",
+   "type": "depense",
+   "prevu": 0
+  }
+ ],
+ "asso": {
+  "nom": "Les Saints Sauveurs du Rock",
+  "adresse": "Espace Culturel, Rue Chesnée, 50490 Saint-Sauveur-Lendelin",
+  "objet": "Organisation du festival rock 2SDR et d'animations culturelles",
+  "identifiant": "",
+  "signataire": "",
+  "qualite": "Trésorier(ère)"
+ }
 };

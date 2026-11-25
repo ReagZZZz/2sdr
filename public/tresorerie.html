@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2SDR — Trésorerie</title>
+<link rel="icon" href="logo-2sdr.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="gestion.css">
+<style>
+.budget-l{display:grid;grid-template-columns:minmax(0,1.3fr) 110px 110px minmax(0,1fr);gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid #262626;font-size:.9rem}
+.budget-l:last-child{border-bottom:0}
+.budget-l .rail{height:10px;background:var(--acier);border-radius:4px;overflow:hidden}
+.budget-l .rail i{display:block;height:100%;background:var(--c)}
+.budget-l.tete-l{color:var(--gris);font-size:.78rem;font-weight:700}
+@media (max-width:700px){.budget-l{grid-template-columns:1fr 90px 90px}.budget-l .rail{grid-column:1/-1}}
+.prev{background:var(--acier);border:2px solid transparent;border-radius:8px;padding:7px 10px;width:120px;text-align:right;color:var(--blanc);font:600 .92rem var(--f-texte)}
+.prev:focus{outline:none;border-color:var(--rouge)}
+.filtres .champ{background:var(--graphite)}
+</style>
+</head>
+<body>
+<header class="g-top"><div class="in">
+  <a href="index.html"><img src="logo-2sdr.png" alt="2SDR, accueil du site"></a>
+  <div class="t">Trésorerie<small id="qui">Chargement…</small></div>
+  <nav><a href="benevoles.html" id="l-ben">Espace bénévole</a><a href="admin.html" id="l-adm" hidden>Admin</a><a href="connexion.html" id="deco">Déconnexion</a></nav>
+</div></header>
+<main class="g-main">
+  <nav class="onglets" role="tablist" aria-label="Sections de la trésorerie">
+    <button role="tab" data-v="synthese" aria-selected="true">Synthèse</button>
+    <button role="tab" data-v="operations" aria-selected="false">Opérations</button>
+    <button role="tab" data-v="budget" aria-selected="false">Budget</button>
+    <button role="tab" data-v="dons" aria-selected="false">Dons et reçus fiscaux</button>
+  </nav>
+  <div id="vue"><p class="vide">Chargement…</p></div>
+</main>
+<dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="api.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const eur=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
+const dFr=iso=>iso?new Date(iso+"T12:00").toLocaleDateString("fr-FR"):"";
+const auj=()=>new Date().toISOString().slice(0,10);
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("on"),2800)}
+function ouvrirDlg(html){$("#dlg-form").innerHTML=html;$("#dlg").showModal()}
+const IC={edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>'};
+const MODES=["Virement","Carte","Espèces","Chèque","Prélèvement","Autre"];
+let T=null,vue="synthese",fO={q:"",type:"",cat:""};
+
+async function charger(){T=await api("/api/tresorerie");$("#qui").textContent="Connecté : "+T.qui;$("#l-adm").hidden=!T.admin;if(T.admin)$("#l-ben").hidden=true}
+const cats=type=>T.budget.filter(b=>!type||b.type===type).map(b=>b.cat);
+const reel=(cat,type)=>T.operations.filter(o=>o.categorie===cat&&o.type===type&&o.statut==="Réglé").reduce((s,o)=>s+o.montant,0);
+
+/* ---------- export CSV (fichier téléchargé, séparateur ; pour Excel) ---------- */
+function exporter(nom,cols,rows){
+  const csv="﻿"+[cols.map(c=>c[0]).join(";"),...rows.map(r=>cols.map(c=>`"${String(c[1](r)??"").replace(/"/g,'""')}"`).join(";"))].join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=nom+".csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+
+/* ---------- Synthèse ---------- */
+function vSynthese(){
+  const R=T.operations.filter(o=>o.type==="recette"),Dp=T.operations.filter(o=>o.type==="depense");
+  const s=(l,st)=>l.filter(o=>!st||o.statut===st).reduce((a,o)=>a+o.montant,0);
+  const rec=s(R,"Réglé"),dep=s(Dp,"Réglé"),aEnc=s(R,"À régler"),aReg=s(Dp,"À régler");
+  const prevR=T.budget.filter(b=>b.type==="recette").reduce((a,b)=>a+b.prevu,0),prevD=T.budget.filter(b=>b.type==="depense").reduce((a,b)=>a+b.prevu,0);
+  const sansRecu=T.dons.filter(d=>!d.recu_num).length;
+  const ligne=(b,c)=>{const r=reel(b.cat,b.type),pc=b.prevu?Math.min(100,r/b.prevu*100):r?100:0;
+    return `<div class="budget-l"><span>${esc(b.cat)}</span><span class="montant num">${eur(r)}</span><span class="montant num sous">${b.prevu?eur(b.prevu):"–"}</span><div class="rail"><i style="--c:${b.type==="depense"&&b.prevu&&r>b.prevu?"var(--rouge)":c};width:${pc}%"></i></div></div>`};
+  return `<div class="tete"><div><h1>Synthèse</h1><p>Opérations réglées, comparées au budget prévisionnel. Les opérations « à régler » sont comptées à part.</p></div></div>
+  <div class="kpis">
+    <div class="kpi"><b class="recette">${eur(rec)}</b><span>recettes encaissées</span><small>${aEnc?eur(aEnc)+" à encaisser":"rien en attente"}</small></div>
+    <div class="kpi"><b class="depense">${eur(dep)}</b><span>dépenses payées</span><small>${aReg?eur(aReg)+" à payer":"rien en attente"}</small></div>
+    <div class="kpi ${rec-dep<0?"rouge":""}"><b>${eur(rec-dep)}</b><span>solde</span><small>prévu : ${eur(prevR-prevD)}</small></div>
+    <div class="kpi"><b>${eur(T.dons.reduce((a,d)=>a+d.montant,0))}</b><span>dons et mécénat</span><small class="${sansRecu?"warn":""}">${sansRecu?sansRecu+" reçu(s) fiscal(aux) à émettre":"tous les reçus sont émis"}</small></div>
+  </div>
+  ${T.merchCA?`<div class="encadre">Ventes merch notées dans le stock : <b>${eur(T.merchCA)}</b> (articles vendus × prix de l'admin). Pense à les saisir en recettes une fois l'argent compté.</div>`:""}
+  <div class="grille2">
+    <div class="carte"><h2>Recettes</h2><div class="budget-l tete-l"><span>Catégorie</span><span class="num">Réel</span><span class="num">Prévu</span><span></span></div>${T.budget.filter(b=>b.type==="recette").map(b=>ligne(b,"var(--vert)")).join("")}</div>
+    <div class="carte"><h2>Dépenses</h2><div class="budget-l tete-l"><span>Catégorie</span><span class="num">Réel</span><span class="num">Prévu</span><span></span></div>${T.budget.filter(b=>b.type==="depense").map(b=>ligne(b,"var(--or)")).join("")}</div>
+  </div>`;
+}
+
+/* ---------- Opérations ---------- */
+function vOperations(){
+  const l=T.operations.filter(o=>(!fO.type||o.type===fO.type)&&(!fO.cat||o.categorie===fO.cat)&&(o.libelle+" "+o.piece+" "+o.categorie).toLowerCase().includes(fO.q.toLowerCase()));
+  const tot=l.reduce((a,o)=>a+(o.type==="recette"?o.montant:-o.montant),0);
+  return `<div class="tete"><div><h1>Opérations</h1><p>Le journal des recettes et des dépenses. Une opération « à régler » n'entre pas dans le solde tant qu'elle n'est pas réglée.</p></div>
+    <div class="actions"><button class="btn btn-gris" id="exp-o">Exporter (Excel)</button><button class="btn btn-rouge" id="add-o">+ Nouvelle opération</button></div></div>
+  <div class="filtres"><input type="search" class="champ" id="q-o" placeholder="Libellé, pièce…" value="${esc(fO.q)}" aria-label="Rechercher">
+    <select class="champ" id="t-o" aria-label="Type"><option value="">Recettes et dépenses</option><option value="recette" ${fO.type==="recette"?"selected":""}>Recettes</option><option value="depense" ${fO.type==="depense"?"selected":""}>Dépenses</option></select>
+    <select class="champ" id="c-o" aria-label="Catégorie"><option value="">Toutes les catégories</option>${cats().map(c=>`<option ${c===fO.cat?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
+  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th>Mode</th><th>Statut</th><th class="num">Montant</th><th></th></tr></thead><tbody id="ops">
+  ${l.map(o=>`<tr data-id="${o.id}"><td>${dFr(o.date)}</td><td><span class="nom">${esc(o.libelle)}</span>${o.piece?`<span class="sous">Pièce : ${esc(o.piece)}</span>`:""}</td><td>${esc(o.categorie)}</td><td>${esc(o.mode)}</td>
+    <td><button class="badge ${o.statut==="Réglé"?"b-ok":"b-wait"}" data-act="statut">${o.statut==="Réglé"?(o.type==="recette"?"Encaissé":"Payé"):(o.type==="recette"?"À encaisser":"À payer")}</button></td>
+    <td class="num montant ${o.type}"><b>${o.type==="recette"?"+":"−"} ${eur(o.montant)}</b></td>
+    <td><div class="stock-l"><button class="ico" data-act="edit" aria-label="Modifier">${IC.edit}</button><button class="ico danger" data-act="del" aria-label="Supprimer">${IC.del}</button></div></td></tr>`).join("")||`<tr><td colspan="7" class="vide">Aucune opération${fO.q||fO.type||fO.cat?" ne correspond à ces filtres":" pour l'instant. Commence par les premiers achats ou les premières ventes."}.</td></tr>`}</tbody></table></div>
+  <div class="pied-table"><span>${l.length} opération(s)</span><span>Total affiché : <b class="${tot<0?"depense":"recette"}">${eur(tot)}</b></span></div>`;
+}
+function formOperation(o){
+  o=o||{date:auj(),type:"depense",statut:"Réglé",mode:"Virement"};
+  const opts=t=>cats(t).map(c=>`<option ${c===o.categorie?"selected":""}>${esc(c)}</option>`).join("");
+  ouvrirDlg(`<h2>${o.id?"Modifier l'opération":"Nouvelle opération"}</h2><div class="form">
+    <label>Type<select class="champ" id="o-type"><option value="depense" ${o.type==="depense"?"selected":""}>Dépense</option><option value="recette" ${o.type==="recette"?"selected":""}>Recette</option></select></label>
+    <label>Date<input class="champ" type="date" id="o-date" value="${esc(o.date)}"></label>
+    <label class="plein">Libellé<input class="champ" id="o-lib" value="${esc(o.libelle||"")}" placeholder="Ex. : location de la sono, ventes bar samedi soir"></label>
+    <label>Catégorie<select class="champ" id="o-cat">${opts(o.type)}</select></label>
+    <label>Montant (€)<input class="champ" id="o-mt" inputmode="decimal" value="${o.montant??""}" placeholder="0,00"></label>
+    <label>Mode de paiement<select class="champ" id="o-mode">${MODES.map(m=>`<option ${m===o.mode?"selected":""}>${m}</option>`).join("")}</select></label>
+    <label>Statut<select class="champ" id="o-st"><option value="Réglé" ${o.statut==="Réglé"?"selected":""}>Réglé</option><option value="À régler" ${o.statut==="À régler"?"selected":""}>À régler</option></select></label>
+    <label class="plein">N° de pièce ou de facture <span class="sous">facultatif</span><input class="champ" id="o-piece" value="${esc(o.piece||"")}"></label></div>
+    <p class="ko" id="o-err" role="alert" style="min-height:1.2em;font-weight:600"></p>
+    <div class="form-bas"><button class="btn btn-gris" value="x" formnovalidate>Annuler</button><button type="button" class="btn btn-rouge" id="o-ok">Enregistrer</button></div>`);
+  $("#o-type").onchange=e=>{$("#o-cat").innerHTML=opts(e.target.value)};
+  $("#o-ok").onclick=async e=>{e.target.disabled=true;
+    const body={type:$("#o-type").value,date:$("#o-date").value,libelle:$("#o-lib").value,categorie:$("#o-cat").value,montant:$("#o-mt").value,mode:$("#o-mode").value,statut:$("#o-st").value,piece:$("#o-piece").value};
+    try{await api(o.id?`/api/tresorerie/operations/${o.id}`:"/api/tresorerie/operations",{method:o.id?"PUT":"POST",body});$("#dlg").close();await charger();rendre();toast("Opération enregistrée")}
+    catch(x){$("#o-err").textContent=x.message;e.target.disabled=false}};
+}
+function aOperations(){
+  const re=()=>{const pos=$("#q-o").selectionStart;rendre();$("#q-o").focus();$("#q-o").setSelectionRange(pos,pos)};
+  $("#q-o").oninput=e=>{fO.q=e.target.value;re()};$("#t-o").onchange=e=>{fO.type=e.target.value;rendre()};$("#c-o").onchange=e=>{fO.cat=e.target.value;rendre()};
+  $("#add-o").onclick=()=>formOperation();
+  $("#exp-o").onclick=()=>exporter("operations-2sdr",[["Date",o=>o.date],["Type",o=>o.type==="recette"?"Recette":"Dépense"],["Libellé",o=>o.libelle],["Catégorie",o=>o.categorie],["Mode",o=>o.mode],["Statut",o=>o.statut],["Pièce",o=>o.piece],["Montant",o=>String(o.type==="recette"?o.montant:-o.montant).replace(".",",")],["Saisi par",o=>o.par]],T.operations);
+  $("#ops").addEventListener("click",async e=>{const t=e.target.closest("[data-act]");if(!t)return;const o=T.operations.find(x=>x.id==t.closest("tr").dataset.id);
+    try{
+      if(t.dataset.act==="edit")return formOperation(o);
+      if(t.dataset.act==="statut")await api(`/api/tresorerie/operations/${o.id}`,{method:"PUT",body:{...o,statut:o.statut==="Réglé"?"À régler":"Réglé"}});
+      if(t.dataset.act==="del"){if(!t.classList.contains("conf")){t.classList.add("conf");t.style.background="var(--rouge)";toast("Clique encore pour supprimer");setTimeout(()=>{t.classList.remove("conf");t.style.background=""},3000);return}
+        await api(`/api/tresorerie/operations/${o.id}`,{method:"DELETE"})}
+      await charger();rendre();
+    }catch(x){toast(x.message)}});
+}
+
+/* ---------- Budget ---------- */
+function vBudget(){
+  const bloc=type=>`<div class="carte"><h2>${type==="recette"?"Recettes prévues":"Dépenses prévues"}</h2>
+    ${T.budget.map((b,i)=>b.type!==type?"":`<div class="budget-l" style="grid-template-columns:minmax(0,1fr) auto auto"><span>${esc(b.cat)}</span><input class="prev" data-i="${i}" inputmode="decimal" value="${b.prevu||""}" placeholder="0" aria-label="Prévu pour ${esc(b.cat)}"><button class="ico danger" data-del="${i}" aria-label="Retirer la catégorie ${esc(b.cat)}">${IC.del}</button></div>`).join("")}
+    <div class="filtres" style="margin:12px 0 0"><input class="champ" data-nouv="${type}" placeholder="Nouvelle catégorie" style="flex:1"><button type="button" class="btn btn-gris btn-s" data-add="${type}">Ajouter</button></div>
+    <p style="margin-top:12px;text-align:right">Total : <b>${eur(T.budget.filter(b=>b.type===type).reduce((a,b)=>a+b.prevu,0))}</b></p></div>`;
+  return `<div class="tete"><div><h1>Budget prévisionnel</h1><p>Saisis ce que tu prévois par catégorie : la synthèse compare automatiquement avec les opérations réglées.</p></div>
+    <div class="actions"><button class="btn btn-rouge" id="b-save">Enregistrer le budget</button></div></div>
+  <div class="grille2">${bloc("recette")}${bloc("depense")}</div>`;
+}
+function aBudget(){
+  document.querySelectorAll(".prev").forEach(i=>i.oninput=e=>{T.budget[+e.target.dataset.i].prevu=Math.max(0,Number(e.target.value.replace(/\s/g,"").replace(",","."))||0)});
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const c=T.budget[+b.dataset.del];if(T.operations.some(o=>o.categorie===c.cat))return toast("Des opérations utilisent cette catégorie : elle est conservée.");T.budget.splice(+b.dataset.del,1);rendre()});
+  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{const t=b.dataset.add,inp=document.querySelector(`[data-nouv="${t}"]`),n=inp.value.trim();if(!n)return inp.focus();
+    if(T.budget.some(x=>x.cat.toLowerCase()===n.toLowerCase()))return toast("Cette catégorie existe déjà");T.budget.push({cat:n,type:t,prevu:0});rendre()});
+  $("#b-save").onclick=async e=>{e.target.disabled=true;try{await api("/api/tresorerie/budget",{method:"PUT",body:{budget:T.budget}});await charger();rendre();toast("Budget enregistré")}catch(x){toast(x.message);e.target.disabled=false}};
+}
+
+/* ---------- Dons et reçus fiscaux ---------- */
+function vDons(){
+  const A=T.asso,manque=!A.identifiant||!A.signataire;
+  return `<div class="tete"><div><h1>Dons et reçus fiscaux</h1><p>Chaque don ouvre droit à un reçu fiscal numéroté. Une fois le reçu émis, le donateur, la nature et le montant du don sont verrouillés.</p></div>
+    <div class="actions"><button class="btn btn-gris" id="exp-d">Exporter (Excel)</button><button class="btn btn-gris" id="asso">Infos de l'association</button><button class="btn btn-rouge" id="add-d">+ Nouveau don</button></div></div>
+  <div class="encadre"><b>Rappel :</b> entreprise, réduction de <b>60 %</b> du don dans la limite de 20 000 € ou 0,5 % du chiffre d'affaires HT (le plus élevé) ;
+    particulier, <b>66 %</b> dans la limite de 20 % du revenu imposable. Un don en nature ou en compétences est retenu pour sa valeur.
+    ${manque?`<br><b style="color:var(--or)">Avant d'émettre un reçu : complète les infos de l'association (identifiant RNA ou SIREN, signataire).</b>`:""}</div>
+  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Donateur</th><th>Nature</th><th class="num">Montant</th><th>Reçu fiscal</th><th></th></tr></thead><tbody id="dons">
+  ${T.dons.map(d=>`<tr data-id="${d.id}"><td>${dFr(d.date)}</td><td><span class="nom">${esc(d.donateur)}</span><span class="sous">${esc(d.type_donateur)}${d.adresse?" · "+esc(d.adresse):""}</span></td>
+    <td>${esc(d.nature)}${d.description?`<span class="sous">${esc(d.description)}</span>`:""}</td><td class="num montant"><b>${eur(d.montant)}</b></td>
+    <td>${d.recu_num?`<span class="badge b-ok">N° ${esc(d.recu_num)}</span><span class="sous">émis le ${dFr(d.recu_date)}</span>`:`<button class="btn btn-rouge btn-s" data-act="emettre" ${manque?"disabled":""}>Émettre le reçu</button>`}</td>
+    <td><div class="stock-l">${d.recu_num?`<button class="btn btn-gris btn-s" data-act="imprimer">Imprimer</button>`:""}<button class="ico" data-act="edit" aria-label="Modifier">${IC.edit}</button>${d.recu_num?"":`<button class="ico danger" data-act="del" aria-label="Supprimer">${IC.del}</button>`}</div></td></tr>`).join("")||`<tr><td colspan="6" class="vide">Aucun don enregistré pour l'instant.</td></tr>`}</tbody></table></div>`;
+}
+function formDon(d){
+  const nouveau=!d;d=d||{date:auj(),type_donateur:"Entreprise",nature:"Numéraire",mode:"Virement"};const verrou=!!d.recu_num;
+  ouvrirDlg(`<h2>${nouveau?"Nouveau don":"Modifier le don"}</h2><div class="form">
+    <label class="plein">Donateur <span class="sous">raison sociale ou nom et prénom</span><input class="champ" id="d-don" value="${esc(d.donateur||"")}" ${verrou?"readonly":""}></label>
+    <label>Type<select class="champ" id="d-type"><option ${d.type_donateur==="Entreprise"?"selected":""}>Entreprise</option><option ${d.type_donateur==="Particulier"?"selected":""}>Particulier</option></select></label>
+    <label>Date du don<input class="champ" type="date" id="d-date" value="${esc(d.date)}"></label>
+    <label class="plein">Adresse du donateur <span class="sous">obligatoire sur le reçu</span><input class="champ" id="d-adr" value="${esc(d.adresse||"")}"></label>
+    <label>Nature<select class="champ" id="d-nat" ${verrou?"disabled":""}>${["Numéraire","En nature","Compétences"].map(n=>`<option ${n===d.nature?"selected":""}>${n}</option>`).join("")}</select></label>
+    <label>Montant ou valeur (€)<input class="champ" id="d-mt" inputmode="decimal" value="${d.montant??""}" ${verrou?"readonly":""}></label>
+    <label>Mode de versement<select class="champ" id="d-mode">${MODES.map(m=>`<option ${m===d.mode?"selected":""}>${m}</option>`).join("")}</select></label>
+    <label>Description <span class="sous">pour un don en nature</span><input class="champ" id="d-desc" value="${esc(d.description||"")}"></label>
+    ${nouveau?`<label class="plein" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="d-rec" checked style="width:18px;height:18px;accent-color:var(--rouge)"> Ajouter aussi aux recettes (dons en numéraire)</label>`:""}</div>
+    <p class="ko" id="d-err" role="alert" style="min-height:1.2em;font-weight:600"></p>
+    <div class="form-bas"><button class="btn btn-gris" value="x" formnovalidate>Annuler</button><button type="button" class="btn btn-rouge" id="d-ok">Enregistrer</button></div>`);
+  $("#d-ok").onclick=async e=>{e.target.disabled=true;
+    const body={donateur:$("#d-don").value,type_donateur:$("#d-type").value,date:$("#d-date").value,adresse:$("#d-adr").value,nature:$("#d-nat").value,montant:$("#d-mt").value,mode:$("#d-mode").value,description:$("#d-desc").value,recette:nouveau&&$("#d-rec").checked};
+    try{await api(nouveau?"/api/tresorerie/dons":`/api/tresorerie/dons/${d.id}`,{method:nouveau?"POST":"PUT",body});$("#dlg").close();await charger();rendre();toast("Don enregistré")}
+    catch(x){$("#d-err").textContent=x.message;e.target.disabled=false}};
+}
+function formAsso(){
+  const A=T.asso;
+  ouvrirDlg(`<h2>Infos de l'association</h2><p class="sous" style="margin-bottom:12px">Elles figurent sur chaque reçu fiscal.</p><div class="form">
+    <label class="plein">Nom de l'association<input class="champ" id="a-nom" value="${esc(A.nom)}"></label>
+    <label class="plein">Adresse du siège<input class="champ" id="a-adr" value="${esc(A.adresse)}"></label>
+    <label class="plein">Objet<input class="champ" id="a-obj" value="${esc(A.objet)}"></label>
+    <label class="plein">N° RNA ou SIREN<input class="champ" id="a-id" value="${esc(A.identifiant)}" placeholder="W501234567 ou 123 456 789"></label>
+    <label>Signataire des reçus<input class="champ" id="a-sig" value="${esc(A.signataire)}" placeholder="Prénom Nom"></label>
+    <label>Qualité<input class="champ" id="a-q" value="${esc(A.qualite)}"></label></div>
+    <p class="ko" id="a-err" role="alert" style="min-height:1.2em;font-weight:600"></p>
+    <div class="form-bas"><button class="btn btn-gris" value="x" formnovalidate>Annuler</button><button type="button" class="btn btn-rouge" id="a-ok">Enregistrer</button></div>`);
+  $("#a-ok").onclick=async e=>{e.target.disabled=true;
+    try{await api("/api/tresorerie/asso",{method:"PUT",body:{nom:$("#a-nom").value,adresse:$("#a-adr").value,objet:$("#a-obj").value,identifiant:$("#a-id").value,signataire:$("#a-sig").value,qualite:$("#a-q").value}});$("#dlg").close();await charger();rendre();toast("Infos enregistrées")}
+    catch(x){$("#a-err").textContent=x.message;e.target.disabled=false}};
+}
+// Reçu imprimable (à enregistrer en PDF depuis la fenêtre d'impression)
+function imprimer(d){
+  const A=T.asso,ent=d.type_donateur==="Entreprise";
+  const w=window.open("","_blank");if(!w)return toast("Autorise les fenêtres pour ce site pour imprimer le reçu");
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Reçu fiscal ${esc(d.recu_num)}</title>
+  <style>body{font:14px/1.5 Arial,Helvetica,sans-serif;color:#111;max-width:720px;margin:30px auto;padding:0 24px}h1{font-size:20px;text-transform:uppercase;margin:0 0 4px}
+  h2{font-size:14px;text-transform:uppercase;border-bottom:2px solid #111;padding-bottom:4px;margin:24px 0 10px}.num{font-weight:bold}.cadre{border:1px solid #111;padding:12px 14px}
+  td{padding:4px 10px 4px 0;vertical-align:top}.sig{margin-top:40px;display:flex;justify-content:space-between}.petit{font-size:12px;color:#444}
+  @media print{button{display:none}body{margin:0 auto}}</style></head><body>
+  <button onclick="print()" style="float:right;padding:8px 14px">Imprimer / PDF</button>
+  <h1>Reçu au titre des dons</h1><p class="petit">${ent?"Article 238 bis du code général des impôts (entreprises)":"Articles 200 et 238 bis du code général des impôts"} · Reçu <span class="num">N° ${esc(d.recu_num)}</span></p>
+  <h2>Organisme bénéficiaire</h2><div class="cadre"><b>${esc(A.nom)}</b><br>${esc(A.adresse)}<br>Objet : ${esc(A.objet)}<br>${A.identifiant?"Identifiant (RNA / SIREN) : "+esc(A.identifiant)+"<br>":""}Association d'intérêt général</div>
+  <h2>${ent?"Entreprise donatrice":"Donateur"}</h2><div class="cadre"><b>${esc(d.donateur)}</b><br>${esc(d.adresse||"Adresse : ……………………………………")}</div>
+  <h2>Don</h2><table><tr><td>Montant ${d.nature==="Numéraire"?"du don":"(valeur du don)"} :</td><td class="num">${eur(d.montant)}</td></tr>
+  <tr><td>Somme en toutes lettres :</td><td>………………………………………………………………</td></tr>
+  <tr><td>Date du don :</td><td>${dFr(d.date)}</td></tr><tr><td>Nature du don :</td><td>${esc(d.nature)}${d.description?" ("+esc(d.description)+")":""}</td></tr>
+  ${d.nature==="Numéraire"?`<tr><td>Mode de versement :</td><td>${esc(d.mode)}</td></tr>`:""}</table>
+  <p style="margin-top:18px">Le bénéficiaire certifie sur l'honneur que les dons et versements qu'il reçoit ouvrent droit à la réduction d'impôt prévue ${ent?"à l'article 238 bis":"aux articles 200 et 238 bis"} du code général des impôts.</p>
+  <div class="sig"><div>Fait le ${dFr(d.recu_date||auj())}</div><div>${esc(A.signataire)}, ${esc(A.qualite)}<br><br>Signature :</div></div>
+  <p class="petit" style="margin-top:40px">Modèle établi à partir des mentions du reçu officiel. Vérifiez-le auprès du formulaire Cerfa en vigueur (n° 11580 pour les particuliers, n° 16216 pour les entreprises).</p>
+  </body></html>`);w.document.close();
+}
+function aDons(){
+  $("#add-d").onclick=()=>formDon();$("#asso").onclick=formAsso;
+  $("#exp-d").onclick=()=>exporter("dons-2sdr",[["Date",d=>d.date],["Donateur",d=>d.donateur],["Type",d=>d.type_donateur],["Adresse",d=>d.adresse],["Nature",d=>d.nature],["Description",d=>d.description],["Montant",d=>String(d.montant).replace(".",",")],["Mode",d=>d.mode],["Reçu n°",d=>d.recu_num||""],["Reçu émis le",d=>d.recu_date||""]],T.dons);
+  $("#dons").addEventListener("click",async e=>{const t=e.target.closest("[data-act]");if(!t)return;const d=T.dons.find(x=>x.id==t.closest("tr").dataset.id);
+    try{
+      if(t.dataset.act==="edit")return formDon(d);
+      if(t.dataset.act==="imprimer")return imprimer(d);
+      if(t.dataset.act==="emettre"){if(!d.adresse)return toast("Ajoute d'abord l'adresse du donateur (Modifier)");
+        if(!t.classList.contains("conf")){t.classList.add("conf");t.textContent="Confirmer : numéro définitif";setTimeout(()=>{t.classList.remove("conf");t.textContent="Émettre le reçu"},4000);return}
+        const r=await api(`/api/tresorerie/dons/${d.id}/recu`,{body:{}});await charger();rendre();toast("Reçu N° "+r.recu_num+" émis");return imprimer(T.dons.find(x=>x.id===d.id))}
+      if(t.dataset.act==="del"){if(!t.classList.contains("conf")){t.classList.add("conf");t.style.background="var(--rouge)";toast("Clique encore pour supprimer le don");setTimeout(()=>{t.classList.remove("conf");t.style.background=""},3000);return}
+        await api(`/api/tresorerie/dons/${d.id}`,{method:"DELETE"})}
+      await charger();rendre();
+    }catch(x){toast(x.message)}});
+}
+
+/* ---------- Aiguillage ---------- */
+const V={synthese:[vSynthese,()=>{}],operations:[vOperations,aOperations],budget:[vBudget,aBudget],dons:[vDons,aDons]};
+function rendre(){$("#vue").innerHTML=V[vue][0]();V[vue][1]();document.querySelectorAll(".onglets [data-v]").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===vue))}
+document.querySelector(".onglets").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;vue=b.dataset.v;try{history.replaceState(null,"","#"+vue)}catch(x){}rendre()});
+$("#deco").addEventListener("click",async e=>{e.preventDefault();try{await api("/api/logout",{method:"POST"})}catch(x){}location.href="connexion.html"});
+(async()=>{const h=location.hash.slice(1);if(V[h])vue=h;
+  try{await charger();rendre()}catch(x){if(x.status===401)return location.replace("connexion.html");$("#vue").innerHTML=`<p class="vide">${esc(x.message)}</p>`}})();
+</script>
+</body>
+</html>
