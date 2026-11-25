@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2SDR — Connexion espace bénévole</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--noir:#000;--graphite:#1A1A1A;--acier:#262626;--rouge:#E30613;--rouge-fonce:#B0040F;--blanc:#fff;--os:#D9D4CC;--gris:#9A958E;--or:#F5B700;
+  --f-display:"Big Shoulders Display",Impact,"Arial Narrow",sans-serif;--f-texte:"Archivo",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100svh;background:var(--noir);color:var(--blanc);font:400 16px/1.5 var(--f-texte);display:grid;place-items:center;padding:24px}
+:focus-visible{outline:3px solid var(--or);outline-offset:2px;border-radius:6px}
+a{color:inherit}
+.pass{width:min(400px,100%);background:var(--blanc);color:var(--noir);border:7px solid var(--blanc);border-radius:22px;overflow:hidden;box-shadow:0 30px 60px -24px rgba(227,6,19,.45)}
+.bande{background:var(--noir);color:var(--blanc);border-radius:14px 14px 0 0;padding:30px 22px 18px;position:relative}
+.bande::before{content:"";position:absolute;top:12px;left:50%;width:56px;height:10px;margin-left:-28px;border-radius:99px;background:#222}
+.logo{font:900 2.6rem/1 var(--f-display);text-decoration:none}.logo span{color:var(--rouge)}
+.bande p{font:800 .95rem/1 var(--f-display);letter-spacing:.06em;color:var(--os);margin-top:6px}
+.corps{padding:20px 22px 24px}
+.staff{font:900 4.6rem/.8 var(--f-display);color:var(--rouge)}
+h1{font:900 1.7rem/1 var(--f-display);text-transform:uppercase;margin:10px 0 18px}
+form{display:grid;gap:14px}
+label{display:grid;gap:6px;font-weight:600;font-size:.9rem}
+input{font:500 1rem var(--f-texte);color:var(--noir);background:#F1EEE9;border:2px solid transparent;border-radius:8px;padding:13px 14px;width:100%}
+input:focus{outline:none;border-color:var(--rouge)}
+.err{color:var(--rouge-fonce);font-size:.85rem;font-weight:600;min-height:1.2em}
+.btn{font:700 1rem/1 var(--f-texte);border:0;border-radius:999px;padding:16px 26px;background:var(--rouge);color:var(--blanc);cursor:pointer}
+.btn:hover{background:var(--rouge-fonce)}
+.bas{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.88rem;margin-top:16px;color:#5c5852}
+</style>
+</head>
+<body>
+<main class="pass">
+  <div class="bande"><a class="logo" href="index.html">2S<span>D</span>R</a><p>ÉDITION 2027</p></div>
+  <div class="corps">
+    <p class="staff" aria-hidden="true">STAFF</p>
+    <h1>Espace bénévole</h1>
+    <form id="f" novalidate>
+      <label>E-mail<input id="email" type="email" autocomplete="email" required></label>
+      <label>Mot de passe<input id="mdp" type="password" autocomplete="current-password" required></label>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" type="submit">Me connecter</button>
+    </form>
+    <div class="bas"><a href="mailto:contact@2sdr.fr?subject=Mot%20de%20passe%20espace%20b%C3%A9n%C3%A9vole">Mot de passe oublié (contact@2sdr.fr)</a><a href="index.html#inscription">Devenir bénévole</a></div>
+  </div>
+</main>
+<script>
+// Démo : à remplacer par l'appel au login PHP existant (login.php)
+document.getElementById("f").addEventListener("submit",e=>{
+  e.preventDefault();
+  const em=document.getElementById("email"),mdp=document.getElementById("mdp"),err=document.getElementById("err");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em.value.trim())){err.textContent="Saisis une adresse e-mail valide.";return em.focus()}
+  if(!mdp.value){err.textContent="Saisis ton mot de passe.";return mdp.focus()}
+  location.href="benevoles.html";
+});
+</script>
+</body>
+</html>
