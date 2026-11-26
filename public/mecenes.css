@@ -22,7 +22,8 @@ a.mec:hover{transform:translateY(-3px)}
 .mec-vide b{font:900 2rem/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;color:#fff}
 .mec-cadre.vide{padding:30px 0}
 .pause .mec-piste{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.mec-piste{animation:none}.mec-fenetre{overflow-x:auto}}
+/* Réglage « réduire les animations » : le bandeau défile quand même, deux fois plus lentement */
+@media (prefers-reduced-motion:reduce){.mec-piste{animation-duration:calc(var(--duree,40s) * 2)!important}}
 /* Version compacte, en haut de l'accueil */
 .mec-bandeau-haut{background:#000;border-bottom:1px solid #222;position:relative;z-index:1;padding-top:6px}
 .mec-bandeau-haut .in{display:flex;align-items:center;gap:20px;max-width:1240px;margin:0 auto;padding:16px clamp(20px,5vw,64px)}
