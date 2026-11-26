@@ -278,7 +278,11 @@ export const SEED = {
   "verrou": false,
   "inscriptions": true,
   "billetterie": "",
-  "ouverture": "19:00"
+  "ouverture": "19:00",
+  "prix_soiree": "",
+  "prix_surplace": "",
+  "parking": "",
+  "accessibilite": ""
  },
  "responsabilites": [
   "Merch",

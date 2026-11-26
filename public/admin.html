@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2SDR — Administration</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -861,6 +865,12 @@ R.params=()=>`<div class="tete"><div><h1>Paramètres</h1><p>Réglages de l'édit
     <div class="ligne" style="display:block"><div><b>Responsabilités avec gestion de stock</b><span>Une par ligne. Chaque responsable nommé voit l'onglet « Mes stocks » dans son espace bénévole. « Merch » est relié au stock du stand merch.</span></div>
       <textarea class="champ" id="p-resp" rows="6" style="width:100%;margin-top:10px;min-height:0;font:500 .95rem/1.5 var(--f-texte)">${esc((D.responsabilites||[]).join("\n"))}</textarea>
       <div style="margin-top:8px"><button type="button" class="btn btn-gris btn-s" id="p-resp-ok">Enregistrer la liste</button></div></div>
+    <div class="ligne"><div><b>Tarifs de la soirée</b><span>Affichés dans la billetterie du site. Vide : « Bientôt ».</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="sous">Prévente<input class="champ" id="p-prix" inputmode="decimal" placeholder="18" value="${esc(D.params.prix_soiree||"")}" style="width:90px;display:block"></label>
+      <label class="sous">Sur place<input class="champ" id="p-prix2" inputmode="decimal" placeholder="22" value="${esc(D.params.prix_surplace||"")}" style="width:90px;display:block"></label></div></div>
+    <div class="ligne" style="display:block"><div><b>Infos pratiques du site</b><span>Laisser vide pour afficher le texte par défaut.</span></div>
+      <label class="sous" style="display:block;margin-top:10px">Parking<input class="champ" id="p-park" value="${esc(D.params.parking||"")}" placeholder="Ex. : parking gratuit derrière la salle des fêtes" style="width:100%;display:block;margin-top:4px"></label>
+      <label class="sous" style="display:block;margin-top:10px">Accessibilité (fauteuil)<input class="champ" id="p-acc" value="${esc(D.params.accessibilite||"")}" placeholder="Ex. : salle de plain-pied, emplacement réservé face à la scène" style="width:100%;display:block;margin-top:4px"></label></div>
     <div class="ligne"><div><b>Lien de la billetterie</b><span>Les boutons « Prendre ma place » du site y mènent. Vide : « billetterie bientôt ouverte ».</span></div><input type="url" class="champ" id="p-bil" placeholder="https://…" value="${esc(D.params.billetterie||"")}" style="min-width:260px"></div>
     <div class="ligne"><div><b>Ouverture des portes</b><span>Affichée dans le programme du site.</span></div><input type="time" class="champ" id="p-ouv" value="${esc(D.params.ouverture||"19:00")}"></div>
     <div class="ligne"><div><b>Envoi des e-mails</b><span>${META.mail?"Actif : invitations, confirmations et newsletters partent automatiquement.":"Pas encore activé : ajoute la clé Resend (RESEND_API_KEY) dans Cloudflare. En attendant, les liens d'accès s'affichent ici pour être transmis à la main."}</span></div><span class="badge ${META.mail?"b-ok":"b-wait"}">${META.mail?"Actif":"Inactif"}</span></div>
@@ -874,6 +884,8 @@ A.params=()=>{
   ["ins","ver"].forEach(k=>$("#p-"+k).onclick=e=>{const key=k==="ins"?"inscriptions":"verrou";D.params[key]=!D.params[key];e.currentTarget.setAttribute("aria-checked",D.params[key]);save();
     toast(key==="verrou"?(D.params.verrou?"Plannings verrouillés":"Plannings déverrouillés"):(D.params.inscriptions?"Inscriptions ouvertes":"Inscriptions fermées"))});
   $("#p-resp-ok").onclick=()=>{const l=[...new Set($("#p-resp").value.split("\n").map(x=>x.trim()).filter(Boolean))];if(!l.length)return toast("Garde au moins une responsabilité");D.responsabilites=l;save();rendre();toast("Liste des responsabilités enregistrée")};
+  [["p-prix","prix_soiree","Tarif prévente enregistré"],["p-prix2","prix_surplace","Tarif sur place enregistré"],["p-park","parking","Infos parking enregistrées"],["p-acc","accessibilite","Infos accessibilité enregistrées"]]
+    .forEach(([id,k,msg])=>$("#"+id).onchange=e=>{D.params[k]=e.target.value.trim();save();toast(msg)});
   $("#p-bil").onchange=e=>{const v=e.target.value.trim();if(v&&!/^https?:\/\//.test(v))return toast("Le lien doit commencer par https://");D.params.billetterie=v;save();toast(v?"Lien de billetterie enregistré":"Billetterie marquée « bientôt ouverte »")};
   $("#p-ouv").onchange=e=>{D.params.ouverture=e.target.value;save();toast("Heure d'ouverture enregistrée")};
   $("#adm-add").onclick=async ev=>{const em=$("#adm-mail").value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em))return toast("Saisis une adresse e-mail valide");

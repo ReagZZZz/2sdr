@@ -4,6 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2SDR — Les Saints Sauveurs du Rock, 19e édition le 30 octobre 2027</title>
+<meta name="description" content="Festival rock associatif à Saint-Sauveur-Lendelin : 19e édition le samedi 30 octobre 2027, trois groupes en concert le soir et les Kids du rock gratuits l'après-midi.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="2SDR, Les Saints Sauveurs du Rock">
+<meta property="og:title" content="2SDR, Les Saints Sauveurs du Rock : 19e édition le 30 octobre 2027">
+<meta property="og:description" content="Festival rock associatif à Saint-Sauveur-Lendelin : 19e édition le samedi 30 octobre 2027, trois groupes en concert le soir et les Kids du rock gratuits l'après-midi.">
+<meta property="og:url" content="https://2sdr.nngk5grnnv.workers.dev/">
+<meta property="og:image" content="https://2sdr.nngk5grnnv.workers.dev/partage-2sdr.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -81,7 +95,8 @@ img,svg{display:block;max-width:100%}
 @media (max-width:900px){
   .nav ul{position:fixed;inset:68px 0 auto 0;flex-direction:column;gap:0;background:var(--noir);border-bottom:1px solid #222;
     transform:translateY(-120%);transition:transform .25s ease;padding:8px var(--pad) 20px}
-  .nav ul.open{transform:none}
+  .nav ul:not(.open){visibility:hidden}
+  .nav ul.open{transform:none;visibility:visible}
   .nav ul a{display:block;padding:14px 0;font-size:1.2rem;border-bottom:1px solid #1d1d1d}
   .burger{display:block}
   .nav-actions .btn-ligne{display:none}
@@ -114,9 +129,9 @@ img,svg{display:block;max-width:100%}
 @media (max-width:760px){.hero-bas{grid-template-columns:1fr}}
 
 /* ============ SECTIONS ============ */
-section{padding:clamp(72px,11vw,140px) 0}
+section{padding:clamp(64px,8vw,112px) 0}
 .h2{font:900 clamp(3rem,8vw,6.5rem)/.88 var(--f-display);text-transform:uppercase;letter-spacing:-.01em}
-.intro{color:var(--os);max-width:var(--mesure);margin-top:18px;font-size:1.1rem}
+.intro{color:var(--os);max-width:var(--mesure);margin-top:26px;font-size:1.1rem}
 
 /* Accès rapide */
 .acces{padding:0;border-bottom:1px solid #222}
@@ -197,8 +212,8 @@ section{padding:clamp(72px,11vw,140px) 0}
 .merch-public{background:var(--graphite)}
 .merch-public .produit{background:var(--noir)}
 .merch-tete{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
-.produits{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:40px}
-@media (max-width:960px){.produits{grid-template-columns:repeat(2,1fr)}}
+.produits{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:40px}
+@media (max-width:560px){.produits{grid-template-columns:repeat(2,1fr)}}
 .produit{background:var(--graphite);border-radius:var(--r-m);padding:14px;display:flex;flex-direction:column;gap:10px}
 .produit .visu{background:var(--acier);border-radius:10px;aspect-ratio:1;display:grid;place-items:center}
 .produit .visu svg{width:72%}
@@ -264,7 +279,7 @@ legend{font-weight:600;font-size:.92rem;margin-bottom:8px}
 .ticket .btn{align-self:flex-start;margin-top:8px}
 
 /* ============ FOOTER ============ */
-footer{border-top:1px solid #222;padding:56px 0 40px;color:var(--gris)}
+footer{border-top:1px solid #222;padding:56px 0 110px;color:var(--gris)}
 .foot{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px}
 .foot .logo{font-size:4rem;color:var(--blanc)}
 .foot h4{color:var(--blanc);font-size:.95rem;margin-bottom:12px}
@@ -518,6 +533,8 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 .hero-sous sup,.hero-meta sup{font-size:.6em;vertical-align:super;line-height:0}
 @keyframes tampon-ed{0%{opacity:0;transform:rotate(-14deg) scale(1.8)}70%{opacity:1}100%{opacity:1;transform:rotate(9deg) scale(1)}}
 @media (max-width:760px){.edition{top:14px;width:96px;border-width:3px}.edition b{font-size:2.6rem}.edition span{font-size:.72rem;letter-spacing:.08em}}
+.lineup li.a-venir .nom{color:var(--os)}
+.lineup li.a-venir .nom small{font-style:italic}
 </style>
 <link rel="stylesheet" href="mecenes.css">
 </head>
@@ -701,7 +718,7 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
           <label>Taille de t-shirt
             <select name="taille"><option>XS</option><option>S</option><option selected>M</option><option>L</option><option>XL</option><option>XXL</option></select>
           </label>
-          <label>Tu viens de<input name="ville" placeholder="Ville, pour le covoiturage" autocomplete="address-level2"></label>
+          <label>Tu viens de<input name="ville" placeholder="Ta ville" autocomplete="address-level2"></label>
         </div>
         <label>Un mot pour l'équipe (facultatif)<textarea name="msg" rows="3" placeholder="Expérience, contraintes, ami(e) avec qui tu veux être…"></textarea></label>
         <input name="site" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
@@ -729,8 +746,8 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
       <article class="ticket"><h3>Les Kids du rock</h3><div class="prix">Gratuit</div>
         <ul><li>Samedi après-midi</li><li>Concert jeune public et activités</li></ul>
         <a href="#kids" class="btn btn-rouge">Voir le programme Kids</a></article>
-      <article class="ticket vedette"><h3>Soirée concerts</h3><div class="prix">18&nbsp;€</div>
-        <ul><li>Samedi soir, trois groupes</li><li>Tarif sur place : 22 €</li></ul>
+      <article class="ticket vedette"><h3>Soirée concerts</h3><div class="prix" id="prix-soiree">Bientôt</div>
+        <ul><li>Samedi soir, trois groupes</li><li id="prix-surplace">Tarifs annoncés à l'ouverture de la billetterie</li></ul>
         <a href="#" class="btn btn-rouge">Prendre ma place</a></article>
       <article class="ticket"><h3>Groupes et CE</h3><div class="prix">Sur demande</div>
         <ul><li>À partir de 10 personnes</li><li>contact@2sdr.fr</li></ul>
@@ -747,11 +764,11 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
       <p class="intro">Repars avec les couleurs des Saints Sauveurs. Tout est en vente au stand merch le soir du festival.</p></div>
       <a href="mailto:contact@2sdr.fr?subject=Pr%C3%A9commande%20merch%202SDR" class="btn btn-rouge">Précommander par e-mail</a>
     </div>
-    <div class="produits">
-      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M40 14 18 26l8 18 10-5v66h48V39l10 5 8-18-22-12c-2 8-10 12-20 12s-18-4-20-12z" fill="#111" stroke="#555"/><text x="60" y="68" text-anchor="middle" font-family="Big Shoulders Display,Impact" font-weight="900" font-size="20" fill="#E30613">2SDR</text></svg></div><h3>T-shirt 2SDR</h3><div class="p-bas"><span>S au XXL</span><b>15&nbsp;€</b></div></article>
-      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M40 14 18 26l8 18 10-5v66h48V39l10 5 8-18-22-12c-2 8-10 12-20 12s-18-4-20-12z" fill="#E30613" stroke="#555"/><text x="60" y="68" text-anchor="middle" font-family="Big Shoulders Display,Impact" font-weight="900" font-size="20" fill="#000">2SDR</text></svg></div><h3>T-shirt rouge</h3><div class="p-bas"><span>S au XXL</span><b>15&nbsp;€</b></div></article>
-      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 16c0-6 32-6 32 0l26 14 8 40-12 4-6-24v66H28V50l-6 24-12-4 8-40z" fill="#111" stroke="#555"/><path d="M46 16c2 14 26 14 28 0" fill="none" stroke="#555" stroke-width="2"/><text x="60" y="68" text-anchor="middle" font-family="Big Shoulders Display,Impact" font-weight="900" font-size="18" fill="#E30613">2SDR</text></svg></div><h3>Sweat à capuche</h3><div class="p-bas"><span>S au XXL</span><b>35&nbsp;€</b></div></article>
-      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 34c0-16 32-16 32 0" fill="none" stroke="#D9D4CC" stroke-width="5"/><rect x="28" y="34" width="64" height="72" rx="4" fill="#D9D4CC"/><text x="60" y="78" text-anchor="middle" font-family="Big Shoulders Display,Impact" font-weight="900" font-size="20" fill="#000">2SDR</text></svg></div><h3>Tote bag</h3><div class="p-bas"><span>Taille unique</span><b>8&nbsp;€</b></div></article>
+    <div class="produits" id="produits">
+      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M40 14 18 26l8 18 10-5v66h48V39l10 5 8-18-22-12c-2 8-10 12-20 12s-18-4-20-12z" fill="#111" stroke="#555"/><text x="60" y="68" text-anchor="middle" font-family="'Big Shoulders Display',Impact,'Arial Narrow',Arial,sans-serif" font-weight="900" font-size="20" fill="#E30613">2SDR</text></svg></div><h3>T-shirt 2SDR</h3><div class="p-bas"><span>S au XXL</span><b>15&nbsp;€</b></div></article>
+      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M40 14 18 26l8 18 10-5v66h48V39l10 5 8-18-22-12c-2 8-10 12-20 12s-18-4-20-12z" fill="#E30613" stroke="#555"/><text x="60" y="68" text-anchor="middle" font-family="'Big Shoulders Display',Impact,'Arial Narrow',Arial,sans-serif" font-weight="900" font-size="20" fill="#000">2SDR</text></svg></div><h3>T-shirt rouge</h3><div class="p-bas"><span>S au XXL</span><b>15&nbsp;€</b></div></article>
+      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 16c0-6 32-6 32 0l26 14 8 40-12 4-6-24v66H28V50l-6 24-12-4 8-40z" fill="#111" stroke="#555"/><path d="M46 16c2 14 26 14 28 0" fill="none" stroke="#555" stroke-width="2"/><text x="60" y="68" text-anchor="middle" font-family="'Big Shoulders Display',Impact,'Arial Narrow',Arial,sans-serif" font-weight="900" font-size="18" fill="#E30613">2SDR</text></svg></div><h3>Sweat à capuche</h3><div class="p-bas"><span>S au XXL</span><b>35&nbsp;€</b></div></article>
+      <article class="produit"><div class="visu"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 34c0-16 32-16 32 0" fill="none" stroke="#D9D4CC" stroke-width="5"/><rect x="28" y="34" width="64" height="72" rx="4" fill="#D9D4CC"/><text x="60" y="78" text-anchor="middle" font-family="'Big Shoulders Display',Impact,'Arial Narrow',Arial,sans-serif" font-weight="900" font-size="20" fill="#000">2SDR</text></svg></div><h3>Tote bag</h3><div class="p-bas"><span>Taille unique</span><b>8&nbsp;€</b></div></article>
     </div>
     <p class="merch-note">Paiement au stand merch le soir du festival. Pour réserver une taille, écris-nous.</p>
   </div>
@@ -762,15 +779,15 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
   <div class="wrap">
     <h2 id="t-infos" class="h2">Infos pratiques</h2>
     <div class="infos-grid">
-      <div class="info"><h3>Horaires</h3><p>Kids du rock à partir de [14h]. Ouverture des portes pour la soirée à [19h].</p></div>
+      <div class="info"><h3>Horaires</h3><p id="info-horaires">Kids du rock l'après-midi, ouverture des portes en soirée. Les horaires précis sortent avec la programmation.</p></div>
       <div class="info"><h3>Accès</h3><p>Espace Culturel<br>Rue Chesnée<br>50490 Saint-Sauveur-Lendelin</p><p style="margin-top:10px"><a href="https://www.openstreetmap.org/search?query=Rue%20Chesn%C3%A9e%2050490%20Saint-Sauveur-Lendelin" target="_blank" rel="noopener" style="color:var(--blanc);font-weight:600">Voir sur la carte</a></p></div>
-      <div class="info"><h3>Parking</h3><p>[Parking gratuit à proximité de la salle.]</p></div>
+      <div class="info"><h3>Parking</h3><p id="info-parking">Les infos de stationnement seront publiées avant le festival.</p></div>
       <div class="info"><h3>Bar et restauration</h3><p>Bar et petite restauration sur place toute la soirée.</p></div>
     </div>
     <div class="faq">
       <details><summary>Pourquoi le week-end du changement d'heure ?</summary><p>C'est la tradition du festival : à 3h du matin on recule les montres d'une heure, et la soirée dure une heure de plus.</p></details>
       <details><summary>Les enfants peuvent-ils rester le soir ?</summary><p>Oui, accompagnés d'un adulte. Un casque anti-bruit est fortement conseillé pour les plus jeunes.</p></details>
-      <details><summary>Le lieu est-il accessible en fauteuil ?</summary><p>[À compléter selon la salle : accès, emplacement réservé face à la scène, toilettes adaptées.]</p></details>
+      <details><summary>Le lieu est-il accessible en fauteuil ?</summary><p id="info-access">Écris-nous à contact@2sdr.fr avant ta venue : l'équipe t'aide à organiser ton arrivée et ta place dans la salle.</p></details>
     </div>
   </div>
 </section>
@@ -816,7 +833,7 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
       <div><h4>Bénévoles</h4><ul><li><a href="#inscription">Devenir bénévole</a></li><li><a href="connexion.html">Espace bénévole</a></li></ul></div>
       <div><h4>Suivre</h4><ul><li><a href="https://www.facebook.com/2SDRofficiel" target="_blank" rel="noopener">Facebook</a></li><li><a href="https://www.instagram.com/2sdrofficiel/" target="_blank" rel="noopener">Instagram</a></li><li><a href="https://open.spotify.com/playlist/7q88BWK2xOk4ZDoBdHqQbl" target="_blank" rel="noopener">Spotify</a></li><li><a href="https://www.deezer.com/fr/playlist/13156053563" target="_blank" rel="noopener">Deezer</a></li><li><a href="mailto:contact@2sdr.fr">contact@2sdr.fr</a></li></ul></div>
     </div>
-    <div class="foot-bas"><span>© 2027 2SDR</span><span><a href="#">Mentions légales</a>&emsp;<a href="#">Confidentialité</a></span></div>
+    <div class="foot-bas"><span>© 2SDR, Les Saints Sauveurs du Rock · association loi 1901</span><span><a href="mentions-legales.html">Mentions légales</a>&emsp;<a href="confidentialite.html">Confidentialité</a></span></div>
   </div>
 </footer>
 
@@ -843,12 +860,13 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 <script>
 /* ===== Données par défaut (remplacées par celles de l'admin au chargement) ===== */
 const PROGRAMME = [
-  {h:"[14:00]",nom:"Les Kids du rock",d:"Un groupe joue pour les enfants, activités tout l'après-midi",tag:"Gratuit"},
-  {h:"[19:00]",nom:"Ouverture des portes",d:"Bar et restauration ouverts",tag:"Soirée"},
-  {h:"[20:00]",nom:"[Groupe local]",d:"Le groupe de la région qui ouvre la soirée",tag:"Groupe local"},
-  {h:"[21:30]",nom:"[Groupe national]",d:"Premier groupe national de la soirée",tag:"National",cls:"national"},
-  {h:"[23:15]",nom:"[Tête d'affiche]",d:"Le concert de clôture, avant l'heure en plus",tag:"National",cls:"tete"}
+  {h:"14:00",nom:"Les Kids du rock",d:"Concert jeune public et activités tout l'après-midi",tag:"Gratuit"},
+  {h:"19:00",nom:"Ouverture des portes",d:"Bar et restauration ouverts",tag:"Soirée"},
+  {h:"20:00",nom:"Groupe local",d:"Nom dévoilé à la sortie de la programmation",tag:"Groupe local",cls:"a-venir"},
+  {h:"21:30",nom:"Groupe national",d:"Nom dévoilé à la sortie de la programmation",tag:"National",cls:"national a-venir"},
+  {h:"23:15",nom:"Tête d'affiche",d:"Nom dévoilé à la sortie de la programmation",tag:"National",cls:"tete a-venir"}
 ];
+const aVenir=n=>!n||/^\s*\[.*\]\s*$/.test(n);
 const POLES = [
   {id:"resto",nom:"Restauration",d:"Cuisine et service, pour le public comme pour l'équipe.",besoin:"25 places restantes",ico:'<path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 8v10"/>'},
   {id:"montage",nom:"Montage / Démontage",d:"Scène, son, lumière, décor. Toute la semaine avant et les jours d'après.",besoin:"40 places restantes",ico:'<path d="M3 21h18M5 21V10l7-6 7 6v11M9 21v-6h6v6"/>'},
@@ -868,6 +886,7 @@ const escH=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 function rendProgramme(P){document.getElementById("lineup").innerHTML=P.map(e=>`<li class="${e.cls||""}"><time>${escH(e.h)}</time>
   <div class="nom">${escH(e.nom)}<small>${escH(e.d)}</small></div><span class="tag">${escH(e.tag)}</span></li>`).join("")}
 rendProgramme(PROGRAMME);
+const heureFr=t=>{const m=String(t||"").match(/^(\d{1,2}):(\d{2})$/);return m?`${+m[1]} h${m[2]==="00"?"":" "+m[2]}`:t};
 
 /* ===== Pôles ===== */
 document.getElementById("poles").innerHTML=POLES.map(p=>`<article class="pole">
@@ -1053,19 +1072,44 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
     tic=false})},{passive:true});
 }
 
+/* ===== Merch : catalogue de l'admin ===== */
+const FONTE_SVG="'Big Shoulders Display',Impact,'Arial Narrow',Arial,sans-serif";
+function visuMerch(a,v){const n=(a+" "+v).toLowerCase(),rouge=/rouge|red/.test(n),blanc=/blanc|écru|ecru|naturel/.test(n);
+  const fond=rouge?"#E30613":blanc?"#D9D4CC":"#111",txt=rouge?"#000":blanc?"#000":"#E30613";
+  if(/sweat|hoodie|capuche/.test(n))return `<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 16c0-6 32-6 32 0l26 14 8 40-12 4-6-24v66H28V50l-6 24-12-4 8-40z" fill="${fond}" stroke="#555"/><path d="M46 16c2 14 26 14 28 0" fill="none" stroke="#555" stroke-width="2"/><text x="60" y="68" text-anchor="middle" font-family="${FONTE_SVG}" font-weight="900" font-size="18" fill="${txt}">2SDR</text></svg>`;
+  if(/tote|sac/.test(n))return `<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M44 34c0-16 32-16 32 0" fill="none" stroke="#D9D4CC" stroke-width="5"/><rect x="28" y="34" width="64" height="72" rx="4" fill="#D9D4CC"/><text x="60" y="78" text-anchor="middle" font-family="${FONTE_SVG}" font-weight="900" font-size="20" fill="#000">2SDR</text></svg>`;
+  if(/casquette|cap/.test(n))return `<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M20 72c0-26 18-40 40-40s40 14 40 40z" fill="${fond}" stroke="#555"/><path d="M14 72h70c14 0 24 6 26 12H14z" fill="${fond}" stroke="#555"/><text x="60" y="64" text-anchor="middle" font-family="${FONTE_SVG}" font-weight="900" font-size="16" fill="${txt}">2SDR</text></svg>`;
+  return `<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M40 14 18 26l8 18 10-5v66h48V39l10 5 8-18-22-12c-2 8-10 12-20 12s-18-4-20-12z" fill="${fond}" stroke="#555"/><text x="60" y="68" text-anchor="middle" font-family="${FONTE_SVG}" font-weight="900" font-size="20" fill="${txt}">2SDR</text></svg>`}
+function rendMerch(liste){
+  const ordre=["XS","S","M","L","XL","XXL"];
+  document.getElementById("produits").innerHTML=liste.map(m=>{const t=m.tailles.filter(x=>ordre.includes(x)).sort((a,b)=>ordre.indexOf(a)-ordre.indexOf(b));
+    const tailles=t.length>1?`${t[0]} au ${t[t.length-1]}`:t.length?`Taille ${t[0]}`:"Taille unique";
+    const nom=m.var&&!/noir/i.test(m.var)&&!new RegExp(m.var,"i").test(m.article)?`${m.article} ${m.var.toLowerCase()}`:m.article;
+    return `<article class="produit"><div class="visu">${visuMerch(m.article,m.var)}</div><h3>${escH(nom)}</h3><div class="p-bas"><span>${escH(tailles)}</span>${m.prix?`<b>${String(m.prix).replace(".",",")}\u00a0€</b>`:""}</div></article>`}).join("");
+}
+
 /* ===== Données du festival (modifiables dans l'admin) ===== */
-api("/api/public").then(({params,groupes,mecenes})=>{
+api("/api/public").then(({params,groupes,mecenes,merch})=>{
   bandeauMecenes(document.getElementById("mecenes-bande"),mecenes);
   bandeauMecenes(document.getElementById("mecenes-haut"),mecenes,{mini:true});
   if(params.billetterie){BILLETTERIE=params.billetterie;document.querySelectorAll("[data-billet]").forEach(a=>{a.href=BILLETTERIE;a.target="_blank";a.rel="noopener"})}
   if(params.date){const t=new Date(params.date+"T14:00:00+02:00").getTime();if(!isNaN(t))CIBLE=t;compte()}
+  const euro=v=>/^\d+([.,]\d+)?$/.test(String(v).trim())?String(v).trim().replace(".",",")+"\u00a0€":v;
+  if(params.prix_soiree)document.getElementById("prix-soiree").textContent=euro(params.prix_soiree);
+  if(params.prix_surplace)document.getElementById("prix-surplace").textContent="Tarif sur place : "+euro(params.prix_surplace);
+  else if(params.prix_soiree)document.getElementById("prix-surplace").textContent="Tarif en prévente";
+  if(params.parking)document.getElementById("info-parking").textContent=params.parking;
+  if(params.accessibilite)document.getElementById("info-access").textContent=params.accessibilite;
+  {const k=groupes.find(g=>g.type==="Kids du rock");if(k&&k.heure)document.getElementById("info-horaires").textContent=`Kids du rock à partir de ${heureFr(k.heure)}. Ouverture des portes pour la soirée à ${heureFr(params.ouverture||"19:00")}.`}
+  if(merch&&merch.length)rendMerch(merch);
   if(groupes.length){
     const kids=groupes.filter(g=>g.type==="Kids du rock"),soir=groupes.filter(g=>g.type!=="Kids du rock");
     const nat=soir.filter(g=>g.type==="National"),tete=nat[nat.length-1];
-    const P=[...kids.map(g=>({h:g.heure,nom:"Les Kids du rock",d:g.nom+" joue pour les enfants, activités tout l'après-midi",tag:"Gratuit"})),
+    const P=[...kids.map(g=>({h:g.heure,nom:"Les Kids du rock",d:aVenir(g.nom)?"Concert jeune public et activités tout l'après-midi":g.nom+" joue pour les enfants, activités tout l'après-midi",tag:"Gratuit"})),
       {h:params.ouverture||"19:00",nom:"Ouverture des portes",d:"Bar et restauration ouverts",tag:"Soirée"},
-      ...soir.map(g=>({h:g.heure,nom:g.nom,d:g.type==="Local"?"Le groupe de la région qui ouvre la soirée":g===tete?"Le concert de clôture, avant l'heure en plus":"Groupe national",
-        tag:g.type==="Local"?"Groupe local":"National",cls:g.type!=="National"?"":g===tete?"tete":"national"}))]
+      ...soir.map(g=>{const role=g.type==="Local"?"Groupe local":g===tete?"Tête d'affiche":"Groupe national",av=aVenir(g.nom);
+        return {h:g.heure,nom:av?role:g.nom,d:av?"Nom dévoilé à la sortie de la programmation":g.type==="Local"?"Le groupe de la région qui ouvre la soirée":g===tete?"Le concert de clôture, avant l'heure en plus":"Groupe national",
+        tag:g.type==="Local"?"Groupe local":"National",cls:[g.type!=="National"?"":g===tete?"tete":"national",av?"a-venir":""].join(" ").trim()}})]
       .sort((a,b)=>String(a.h).localeCompare(String(b.h)));
     rendProgramme(P);
   }
@@ -1113,23 +1157,24 @@ document.getElementById("particules").insertAdjacentHTML("beforeend",Array.from(
    Mettre les vidéos (format vertical 9:16, MP4 court et léger, ~10-30 s) dans un dossier videos/
    à côté de index.html, puis compléter src (et poster pour l'image d'attente). */
 const VIDEOS=[
-  {annee:"2025",legende:"L'aftermovie",src:"videos/2sdr-2025.mp4",poster:""},
-  {annee:"2025",legende:"Les Kids du rock",src:"videos/2sdr-2025-kids.mp4",poster:""},
-  {annee:"2024",legende:"La tête d'affiche",src:"videos/2sdr-2024.mp4",poster:""},
-  {annee:"2024",legende:"Dans la fosse",src:"videos/2sdr-2024-fosse.mp4",poster:""},
-  {annee:"2023",legende:"Le montage",src:"videos/2sdr-2023-montage.mp4",poster:""},
-  {annee:"2023",legende:"L'heure en plus",src:"videos/2sdr-2023.mp4",poster:""}
+  // Mettre dispo:true une fois la vidéo déposée dans public/videos/
+  {annee:"2025",legende:"L'aftermovie",src:"videos/2sdr-2025.mp4",poster:"",dispo:false},
+  {annee:"2025",legende:"Les Kids du rock",src:"videos/2sdr-2025-kids.mp4",poster:"",dispo:false},
+  {annee:"2024",legende:"La tête d'affiche",src:"videos/2sdr-2024.mp4",poster:"",dispo:false},
+  {annee:"2024",legende:"Dans la fosse",src:"videos/2sdr-2024-fosse.mp4",poster:"",dispo:false},
+  {annee:"2023",legende:"Le montage",src:"videos/2sdr-2023-montage.mp4",poster:"",dispo:false},
+  {annee:"2023",legende:"L'heure en plus",src:"videos/2sdr-2023.mp4",poster:"",dispo:false}
 ];
 (function(){
   const bande=document.getElementById("pellicule");
   const carte=v=>`<button type="button" class="clip" data-src="${v.src}" data-an="${v.annee}" data-leg="${v.legende}" aria-label="Vidéo ${v.annee} : ${v.legende}">
-    <video muted loop playsinline preload="metadata" ${v.poster?`poster="${v.poster}"`:""} src="${v.src}"></video>
+    ${v.dispo?`<video muted loop playsinline preload="metadata" ${v.poster?`poster="${v.poster}"`:""} src="${v.src}"></video>`:""}
     <span class="ph"><span class="an">${v.annee}</span><span class="lire"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6 4l14 8-14 8z"/></svg></span><span class="leg">${v.legende}</span></span>
     <span class="rec">REC</span></button>`;
   bande.innerHTML=VIDEOS.map(carte).join("")+VIDEOS.map(carte).join(""); // doublé pour un défilement continu
   bande.querySelectorAll(".clip").forEach(c=>{const vid=c.querySelector("video");
-    vid.addEventListener("loadeddata",()=>{c.classList.add("a-video");vid.play().catch(()=>{})});
-    vid.addEventListener("error",()=>vid.remove());
+    if(vid)vid.addEventListener("loadeddata",()=>{c.classList.add("a-video");vid.play().catch(()=>{})});
+    if(vid)vid.addEventListener("error",()=>vid.remove());
     c.addEventListener("click",()=>{
       const box=document.getElementById("lecteur-in"),ok=c.classList.contains("a-video");
       box.innerHTML=ok?`<video src="${c.dataset.src}" controls autoplay playsinline></video>`

@@ -248,12 +248,20 @@ function versAdmin(b) {
 
 /* ================= Routes publiques ================= */
 async function routePublic(env) {
-  const { params, groupes } = await docs(env, ["params", "groupes"]);
+  const { params, groupes, merch, asso } = await docs(env, ["params", "groupes", "merch", "asso"]);
   const { results: mec } = await env.DB.prepare("SELECT id, nom, lien, logo IS NOT NULL a_logo, maj, fond FROM mecenes WHERE actif = 1 ORDER BY ordre, id").all();
   return json({
     mecenes: mec.map((m) => ({ nom: m.nom, lien: m.lien || "", fond: m.fond === "sombre" ? "sombre" : "clair", logo: m.a_logo ? `/api/mecenes/${m.id}/logo?v=${m.maj}` : "" })),
     ok: true,
-    params: { date: params.date, deadline: params.deadline, inscriptions: params.inscriptions !== false, billetterie: params.billetterie || "", ouverture: params.ouverture || "19:00" },
+    params: { date: params.date, deadline: params.deadline, inscriptions: params.inscriptions !== false, billetterie: params.billetterie || "", ouverture: params.ouverture || "19:00",
+      prix_soiree: params.prix_soiree || "", prix_surplace: params.prix_surplace || "", parking: params.parking || "", accessibilite: params.accessibilite || "" },
+    merch: Object.values(merch.filter((m) => !m.staff).reduce((acc, m) => {
+      const k = m.article + "|" + (m.var || "");
+      (acc[k] ||= { article: m.article, var: m.var || "", tailles: [], prix: m.prix || 0 }).tailles.push(m.taille);
+      acc[k].prix = Math.min(acc[k].prix || m.prix || 0, m.prix || acc[k].prix || 0);
+      return acc;
+    }, {})),
+    asso: { nom: asso.nom, adresse: asso.adresse, identifiant: asso.identifiant },
     groupes: groupes.map((g) => ({ nom: g.nom, type: g.type, heure: g.heure, duree: g.duree })).sort((a, b) => (a.heure || "").localeCompare(b.heure || "")),
   });
 }

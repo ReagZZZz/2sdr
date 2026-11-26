@@ -41,6 +41,10 @@ npx wrangler dev
 
 Code serveur : `src/worker.js` (API), `src/mails.js` (gabarits d'e-mails), `src/seed.js` (données de départ).
 
+## Partage et domaine
+
+L'adresse du site figure dans les balises de partage (`og:url`, `og:image`) de `public/index.html` et `public/mecenat.html`, et dans `SITE_URL` (`wrangler.jsonc`). À mettre à jour le jour où le domaine 2sdr.fr est branché.
+
 ## Vidéos Rewind
 
-Déposer les vidéos (MP4 vertical 9:16, 10 à 30 s) dans `public/videos/` avec les noms attendus dans `public/index.html` (`2sdr-2025.mp4`, etc.).
+Déposer les vidéos (MP4 vertical 9:16, 10 à 30 s) dans `public/videos/` avec les noms attendus dans `public/index.html` (`2sdr-2025.mp4`, etc.), puis passer `dispo:false` à `dispo:true` pour chacune.
