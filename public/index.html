@@ -33,7 +33,7 @@
 </script>
 <style>
 /* ============ TOKENS 2SDR ============ */
-:root{
+:root{--ease-out:cubic-bezier(.23,1,.32,1);--ease-in-out:cubic-bezier(.77,0,.175,1);--ease-drawer:cubic-bezier(.32,.72,0,1);
   --noir:#000000;
   --graphite:#1A1A1A;
   --acier:#2B2B2B;
@@ -68,7 +68,7 @@ img,svg{display:block;max-width:100%}
 
 /* ============ BOUTONS ============ */
 .btn{display:inline-flex;align-items:center;gap:.6em;font:700 1rem/1 var(--f-texte);text-decoration:none;border:0;cursor:pointer;
-  padding:16px 26px;border-radius:999px;transition:transform .15s ease, background .15s ease}
+  padding:16px 26px;border-radius:999px;transition:transform .16s var(--ease-out),background-color .15s ease,box-shadow .2s ease}
 .btn:active{transform:scale(.97)}
 .btn-rouge{background:var(--rouge);color:var(--blanc)}
 .btn-rouge:hover{background:var(--rouge-fonce)}
@@ -91,12 +91,12 @@ img,svg{display:block;max-width:100%}
 .nav-actions{display:flex;gap:10px;align-items:center}
 .nav-actions .btn{padding:11px 18px;font-size:.9rem}
 .burger{display:none;background:none;border:0;color:var(--blanc);width:44px;height:44px;cursor:pointer}
-.burger span{display:block;width:24px;height:2px;background:currentColor;margin:5px auto;transition:.2s}
+.burger span{display:block;width:24px;height:2px;background:currentColor;margin:5px auto;transition:transform .2s var(--ease-out),opacity .2s var(--ease-out)}
 @media (max-width:900px){
   .nav ul{position:fixed;inset:68px 0 auto 0;flex-direction:column;gap:0;background:var(--noir);border-bottom:1px solid #222;
-    transform:translateY(-120%);transition:transform .25s ease;padding:8px var(--pad) 20px}
+    transform:translateY(-120%);transition:transform .3s var(--ease-drawer),visibility 0s .3s;padding:8px var(--pad) 20px}
   .nav ul:not(.open){visibility:hidden}
-  .nav ul.open{transform:none;visibility:visible}
+  .nav ul.open{transform:none;visibility:visible;transition:transform .3s var(--ease-drawer),visibility 0s}
   .nav ul a{display:block;padding:14px 0;font-size:1.2rem;border-bottom:1px solid #1d1d1d}
   .burger{display:block}
   .nav-actions .btn-ligne{display:none}
@@ -114,7 +114,7 @@ img,svg{display:block;max-width:100%}
 .hero-titre{font:900 clamp(6rem,24vw,19rem)/.78 var(--f-display);letter-spacing:-.03em;margin-left:-.04em;
   color:var(--blanc);user-select:none}
 .hero-titre .r{color:var(--rouge)}
-.hero-titre span{display:inline-block;animation:monte .9s cubic-bezier(.2,.8,.2,1) both}
+.hero-titre span{display:inline-block;animation:monte .9s var(--ease-out) both}
 .hero-titre span:nth-child(2){animation-delay:.07s}
 .hero-titre span:nth-child(3){animation-delay:.14s}
 .hero-titre span:nth-child(4){animation-delay:.21s}
@@ -173,7 +173,7 @@ section{padding:clamp(64px,8vw,112px) 0}
 /* Le pass staff : élément signature */
 .pass-zone{display:flex;justify-content:center;perspective:900px}
 .pass{width:min(340px,88vw);background:var(--blanc);color:var(--noir);border-radius:var(--r-l);padding:0 0 22px;position:relative;
-  box-shadow:0 30px 60px -20px rgba(0,0,0,.55);transform:rotate(-5deg);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.55);transform:rotate(-5deg);transition:transform .4s var(--ease-out)}
 
 .pass::before{content:"";position:absolute;top:16px;left:50%;width:64px;height:12px;margin-left:-32px;border-radius:99px;background:var(--rouge)}
 .lanyard{position:absolute;bottom:100%;left:50%;width:40px;height:220px;margin-left:-20px;background:
@@ -261,7 +261,7 @@ legend{font-weight:600;font-size:.92rem;margin-bottom:8px}
 .faq details{border-bottom:1px solid #2a2a2a}
 .faq summary{cursor:pointer;list-style:none;padding:20px 40px 20px 0;font-weight:700;font-size:1.08rem;position:relative}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"+";position:absolute;right:4px;top:12px;font:900 2rem var(--f-display);color:var(--rouge);transition:transform .2s}
+.faq summary::after{content:"+";position:absolute;right:4px;top:12px;font:900 2rem var(--f-display);color:var(--rouge);transition:transform .2s var(--ease-out)}
 .faq details[open] summary::after{transform:rotate(45deg)}
 .faq details p{color:var(--os);padding:0 0 20px;max-width:var(--mesure)}
 
@@ -288,8 +288,8 @@ footer{border-top:1px solid #222;padding:56px 0 110px;color:var(--gris)}
 .foot-bas{margin-top:48px;font-size:.85rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
 @media (max-width:760px){.foot{grid-template-columns:1fr 1fr}.foot>div:first-child{grid-column:1/-1}}
 
-.toast{visibility:hidden;position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);background:var(--blanc);color:var(--noir);padding:14px 20px;border-radius:999px;font-weight:600;z-index:100;transition:transform .3s cubic-bezier(.2,.8,.2,1);max-width:92vw}
-.toast.on{visibility:visible;transform:translate(-50%,0)}
+.toast{visibility:hidden;position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);background:var(--blanc);color:var(--noir);padding:14px 20px;border-radius:999px;font-weight:600;z-index:100;transition:transform .4s ease,visibility 0s .4s;max-width:92vw}
+.toast.on{visibility:visible;transform:translate(-50%,0);transition:transform .4s ease,visibility 0s}
 
 /* ================= MOTION ROCK ================= */
 html,body{overflow-x:clip}
@@ -305,7 +305,7 @@ html,body{overflow-x:clip}
 .spots::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 50% at 70% 20%,rgba(227,6,19,.35),transparent 70%);animation:pulse .5s ease-out infinite alternate;will-change:opacity}
 @keyframes pulse{from{opacity:.55}to{opacity:1}}
 /* Le D bat à 120 BPM */
-.hero-titre span.r{animation:monte .9s cubic-bezier(.2,.8,.2,1) .14s both}
+.hero-titre span.r{animation:monte .9s var(--ease-out) .14s both}
 .hero-titre span.r b{display:inline-block;font:inherit;animation:boum .5s cubic-bezier(.3,0,.3,1) 1.3s infinite;text-shadow:0 0 40px rgba(227,6,19,.6);transform-origin:50% 80%;will-change:transform}
 @keyframes boum{0%{transform:scale(1.045)}35%{transform:scale(1)}100%{transform:scale(1)}}
 /* Égaliseur */
@@ -317,7 +317,7 @@ html,body{overflow-x:clip}
 .compte{display:flex;gap:6px}
 .compte div{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px;min-width:62px;text-align:center}
 .compte b{display:block;font:900 2rem/1 var(--f-display);font-variant-numeric:tabular-nums}
-.compte b.tick{animation:tick .35s ease-out}
+.compte b.tick{animation:tick .3s var(--ease-out)}
 .compte span{font-size:.72rem;color:var(--gris);font-weight:600}
 @keyframes tick{from{transform:translateY(-30%);opacity:.3}to{transform:none;opacity:1}}
 /* Bandeau défilant */
@@ -326,36 +326,36 @@ html,body{overflow-x:clip}
 .ticker span{font:900 clamp(1.4rem,3vw,2.2rem)/1 var(--f-display);text-transform:uppercase;padding:14px 22px;display:inline-flex;align-items:center;gap:44px}
 .ticker span::after{content:"";width:16px;height:16px;background:var(--noir);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
 @keyframes defile{to{transform:translateX(-50%)}}
-.ticker:hover .ticker-in{animation-play-state:paused}
+@media (hover:hover) and (pointer:fine){.ticker:hover .ticker-in{animation-play-state:paused}}
 /* Apparitions au scroll */
-.rv{opacity:0;transform:translateY(34px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.2,1);transition-delay:var(--rd,0s)}
+.rv{opacity:0;transform:translateY(24px);transition:opacity .5s var(--ease-out),transform .6s var(--ease-out);transition-delay:var(--rd,0s)}
 .rv.in{opacity:1;transform:none}
-.h2.rv{clip-path:inset(0 0 100% 0);transform:translateY(20px);transition:clip-path .8s cubic-bezier(.7,0,.2,1),transform .8s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.h2.rv{clip-path:inset(0 0 100% 0);transform:translateY(20px);transition:clip-path .7s var(--ease-in-out),transform .7s var(--ease-out),opacity .3s}
 .h2.rv.in{clip-path:inset(0 0 -10% 0)}
 /* Line-up : balayage rouge au survol */
 .lineup li{position:relative;isolation:isolate}
-.lineup li::before{content:"";position:absolute;inset:0 -12px;background:var(--rouge);z-index:-1;transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.2,.8,.2,1);border-radius:6px}
-.lineup li:hover::before{transform:scaleX(1)}
-.lineup li:hover time{color:var(--blanc)}
+.lineup li::before{content:"";position:absolute;inset:0 -12px;background:var(--rouge);z-index:-1;transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease-out);border-radius:6px}
+@media (hover:hover) and (pointer:fine){.lineup li:hover::before{transform:scaleX(1)}}
+@media (hover:hover) and (pointer:fine){.lineup li:hover time{color:var(--blanc)}}
 /* Pass qui se balance */
 .pass{transform-origin:50% -220px;animation:balance 4.5s ease-in-out infinite}
-.pass:hover{animation-play-state:paused}
+@media (hover:hover) and (pointer:fine){.pass:hover{animation-play-state:paused}}
 @keyframes balance{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(2deg)}}
 /* Micro-interactions */
-.btn-rouge:hover{transform:translateY(-2px) rotate(-1deg);box-shadow:0 8px 24px -8px rgba(227,6,19,.8)}
-.ticket,.produit{transition:transform .25s cubic-bezier(.2,.8,.2,1)}
-.ticket:hover{transform:translateY(-6px) rotate(-1deg)}
-.produit:hover{transform:translateY(-6px)}
-.produit:hover svg{animation:secoue .5s ease}
+@media (hover:hover) and (pointer:fine){.btn-rouge:hover{transform:translateY(-2px) rotate(-1deg);box-shadow:0 8px 24px -8px rgba(227,6,19,.8)}}
+.ticket,.produit{transition:transform .25s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.ticket:hover{transform:translateY(-6px) rotate(-1deg)}}
+@media (hover:hover) and (pointer:fine){.produit:hover{transform:translateY(-6px)}}
+@media (hover:hover) and (pointer:fine){.produit:hover svg{animation:secoue .5s ease}}
 @keyframes secoue{25%{transform:rotate(-6deg)}75%{transform:rotate(5deg)}}
 .nav ul a{position:relative}
-.nav ul a::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:3px;background:var(--rouge);transform:scaleX(0);transition:transform .2s}
-.nav ul a:hover::after{transform:scaleX(1)}
+.nav ul a::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:3px;background:var(--rouge);transform:scaleX(0);transition:transform .2s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.nav ul a:hover::after{transform:scaleX(1)}}
 
 /* ================= LECTEUR PLAYLIST ================= */
 .player{position:fixed;right:18px;bottom:18px;z-index:90;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.player-btn{display:flex;align-items:center;gap:12px;background:var(--noir);color:var(--blanc);border:2px solid var(--rouge);border-radius:999px;padding:6px 18px 6px 6px;font-family:var(--f-texte);cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.6);transition:transform .2s}
-.player-btn:hover{transform:translateY(-2px)}
+.player-btn{display:flex;align-items:center;gap:12px;background:var(--noir);color:var(--blanc);border:2px solid var(--rouge);border-radius:999px;padding:6px 18px 6px 6px;font-family:var(--f-texte);cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.6);transition:transform .2s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.player-btn:hover{transform:translateY(-2px)}}
 .vinyl{width:44px;height:44px;border-radius:50%;flex:none;position:relative;
   background:radial-gradient(circle,var(--rouge) 0 22%,#000 23% 26%,#1c1c1c 27% 34%,#0a0a0a 35% 44%,#1c1c1c 45% 52%,#0a0a0a 53% 62%,#1c1c1c 63% 70%,#000 71%);
   animation:tourne 2s linear infinite;animation-play-state:paused}
@@ -369,7 +369,7 @@ html,body{overflow-x:clip}
 .pl-eq i{width:3px;background:var(--rouge);height:100%;transform-origin:50% 100%;transform:scaleY(.3);animation:barre .6s ease-in-out infinite alternate;--h:1;animation-play-state:paused}
 .pl-eq i:nth-child(2){animation-delay:-.2s}.pl-eq i:nth-child(3){animation-delay:-.4s}
 .player.on .pl-eq i{animation-play-state:running}
-.player-panel{width:min(380px,calc(100vw - 36px));background:var(--graphite);border-radius:var(--r-l);padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.7);transform-origin:bottom right;animation:ouvre .3s cubic-bezier(.2,.8,.2,1)}
+.player-panel{width:min(380px,calc(100vw - 36px));background:var(--graphite);border-radius:var(--r-l);padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.7);transform-origin:bottom right;animation:ouvre .3s var(--ease-out)}
 @keyframes ouvre{from{transform:scale(.85) translateY(10px);opacity:0}}
 .pl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .pl-head b{font:900 1.4rem var(--f-display);text-transform:uppercase}
@@ -410,17 +410,17 @@ html,body{overflow-x:clip}
   40%{transform:translate(5px,-2px);text-shadow:-10px 0 var(--rouge),6px 0 #00000080;clip-path:inset(10% 0 40% 0)}
   60%{transform:translate(-3px,0) skewX(4deg);text-shadow:6px 0 #fff;clip-path:inset(50% 0 5% 0)}
   80%{transform:translate(2px,1px);clip-path:none}100%{transform:none;text-shadow:none}}
-.hero-accroche .mot{display:inline-block;opacity:0;transform:translateY(60%) rotate(4deg);animation:mot .55s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--md)}
+.hero-accroche .mot{display:inline-block;opacity:0;transform:translateY(60%) rotate(4deg);animation:mot .55s var(--ease-out) forwards;animation-delay:var(--md)}
 @keyframes mot{to{opacity:1;transform:none}}
 .hero-titre{will-change:transform}
 
-.hero-sous{animation:espace 1.1s cubic-bezier(.2,.8,.2,1) .35s both}
+.hero-sous{animation:espace 1.1s var(--ease-out) .35s both}
 @keyframes espace{from{letter-spacing:.6em;opacity:0;filter:blur(6px)}to{letter-spacing:.02em;opacity:1;filter:none}}
 .ticker.inverse{background:var(--blanc);color:var(--noir);transform:rotate(1.2deg);margin:0 -10px}
 .ticker.inverse .ticker-in{animation-direction:reverse;animation-duration:34s}
 .ticker.inverse span::after{background:var(--rouge)}
-.pole svg{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
-.pole:hover svg{transform:rotate(-12deg) scale(1.2)}
+.pole svg{transition:transform .3s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.pole:hover svg{transform:rotate(-12deg) scale(1.2)}}
 .kids{position:relative;overflow:hidden}
 .kids .notes{position:absolute;inset:0;pointer-events:none}
 .kids .notes span{position:absolute;bottom:-30px;font:900 1.8rem var(--f-display);color:var(--rouge);opacity:.5;animation:envole 6s linear infinite}
@@ -482,10 +482,10 @@ html,body{overflow-x:clip}
   background:repeating-linear-gradient(90deg,transparent 0 10px,#2a2a2a 10px 22px,transparent 22px 34px);background-size:34px 12px}
 .pellicule::before{top:5px}.pellicule::after{bottom:5px}
 .pellicule-in{display:flex;gap:14px;width:max-content;animation:defile 50s linear infinite;will-change:transform}
-.pellicule:hover .pellicule-in,.pellicule:focus-within .pellicule-in{animation-play-state:paused}
+.pellicule:focus-within .pellicule-in{animation-play-state:paused}@media (hover:hover) and (pointer:fine){.pellicule:hover .pellicule-in{animation-play-state:paused}}
 .clip{position:relative;width:clamp(150px,18vw,210px);aspect-ratio:9/16;border-radius:12px;overflow:hidden;border:0;padding:0;background:#141414;color:var(--blanc);cursor:pointer;flex:none;
-  transition:transform .3s cubic-bezier(.2,.8,.2,1)}
-.clip:hover{transform:scale(1.04) rotate(-1deg)}
+  transition:transform .3s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.clip:hover{transform:scale(1.04) rotate(-1deg)}}
 .clip video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .clip .ph{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:14px;text-align:left;
   background:radial-gradient(120% 70% at 30% 20%,rgba(227,6,19,.55),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 2px,transparent 2px 4px),#141414}
@@ -535,6 +535,27 @@ dialog.lecteur video{width:100%;border-radius:14px;display:block;background:#000
 @media (max-width:760px){.edition{top:14px;width:96px;border-width:3px}.edition b{font-size:2.6rem}.edition span{font-size:.72rem;letter-spacing:.08em}}
 .lineup li.a-venir .nom{color:var(--os)}
 .lineup li.a-venir .nom small{font-style:italic}
+
+/* ===== Finitions Emil Kowalski ===== */
+/* L'appui gagne toujours sur le survol : le bouton s'enfonce sous le doigt */
+.btn:active,.btn-rouge:active{transform:scale(.97);box-shadow:none;transition-duration:.1s}
+.player-btn:active,.clip:active,.lecteur-bas button:active,.burger:active{transform:scale(.97)}
+.lecteur-bas button{transition:transform .16s var(--ease-out)}
+/* FAQ : la réponse glisse au lieu d'apparaître d'un coup */
+.faq details[open] p{animation:deplie .25s var(--ease-out)}
+@keyframes deplie{from{opacity:0;transform:translateY(-6px)}}
+/* Lecteur vidéo : la fenêtre s'ouvre depuis le centre, le fond se fond */
+dialog.lecteur[open]{animation:modale .25s var(--ease-out)}
+dialog.lecteur[open]::backdrop{animation:fondu .25s var(--ease-out)}
+@keyframes modale{from{opacity:0;transform:scale(.96)}}
+@keyframes fondu{from{opacity:0}}
+/* Menu mobile : les liens arrivent en cascade courte */
+@media (max-width:900px){.nav ul.open li{animation:deplie .3s var(--ease-out) both}
+  .nav ul.open li:nth-child(2){animation-delay:30ms}.nav ul.open li:nth-child(3){animation-delay:70ms}
+  .nav ul.open li:nth-child(4){animation-delay:100ms}.nav ul.open li:nth-child(5){animation-delay:140ms}.nav ul.open li:nth-child(6){animation-delay:170ms}}
+/* Réduire les animations : apparitions en fondu seulement (le reste du spectacle est conservé, voir la charte) */
+@media (prefers-reduced-motion:reduce){.rv,.h2.rv{transform:none;clip-path:none;transition:opacity .4s ease}
+  .faq details[open] p,.nav ul.open li{animation-name:fondu}}
 </style>
 <link rel="stylesheet" href="mecenes.css">
 </head>
@@ -975,9 +996,13 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!panel.hidden)ouvri
 {
   const hero=document.querySelector(".hero"),titre=document.getElementById("titre");
   // Projecteur qui suit le pointeur
-  const suivi=document.querySelector(".suivi");let px=0,py=0,ptic=false;
-  hero.addEventListener("pointermove",e=>{px=e.clientX;py=e.clientY;if(ptic)return;ptic=true;
-    requestAnimationFrame(()=>{const r=hero.getBoundingClientRect();suivi.style.transform=`translate(${px-r.left}px,${py-r.top}px)`;ptic=false})},{passive:true});
+  // Amorti façon ressort : le halo rattrape le pointeur au lieu de lui coller (souris uniquement)
+  const suivi=document.querySelector(".suivi");let tx=0,ty=0,sx=null,sy=0,boucle=false;
+  const suivre=()=>{sx+=(tx-sx)*.14;sy+=(ty-sy)*.14;suivi.style.transform=`translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px)`;
+    if(Math.abs(tx-sx)+Math.abs(ty-sy)>.5)requestAnimationFrame(suivre);else boucle=false};
+  hero.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse")return;const r=hero.getBoundingClientRect();
+    tx=e.clientX-r.left;ty=e.clientY-r.top;if(sx===null){sx=tx;sy=ty}
+    if(!boucle){boucle=true;requestAnimationFrame(suivre)}},{passive:true});
   // Accroche mot par mot
   const acc=document.querySelector(".hero-accroche");
   acc.innerHTML=acc.textContent.split(" ").map((m,i)=>`<span class="mot" style="--md:${(0.6+i*0.06).toFixed(2)}s">${m}</span>`).join(" ");
